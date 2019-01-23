@@ -1,0 +1,14 @@
+README for tech shell (tsh.c) by Edward Auttonberry
+
+All examples work, but there are some rules
+
+	* The shell takes stdin from the user, but pressing the TAB button will probably screw up what it sees. Basically try not to press TAB.
+	* Built-ins work perfectly 90% of the time, but sometimes some output is missing or something
+	* File redirection works, but if the above rule kicks in the write may not occur
+	* I haven't been able to really break this shell, so I think error handling is pretty good.
+	* The shell does not handle SIGINT, so you can ctrl+c out of the shell instead of exiting
+	* No colors unfortunately.
+	* My environment had most non-builtins, like ps, under /bin/, so thats what was tested. If other directories don't work, that is why.
+	* The shell does not parse escaped characters, so it is not possible to cd into a dir with spaces. I talked to Box, he said this is fine and not required.
+
+That's it. Have fun.
