@@ -1,7 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<pthread.h>
-#include<semaphore.h>
 
 void *func(int n);
 pthread_t philosopher[5];
@@ -54,12 +53,17 @@ int main()
 
 void *func(int n)
 {
-	printf("\nPhilosopher %d is thinking ",n);
-	pthread_mutex_lock(&chopstick[n]);//when philosopher 5 is eating he takes fork 1 and fork 5
-	pthread_mutex_lock(&chopstick[(n+1)%5]);
-	printf("\nPhilosopher %d is eating ",n);
-	sleep(3);
-	pthread_mutex_unlock(&chopstick[n]);
-	pthread_mutex_unlock(&chopstick[(n+1)%5]);
-	printf("\nPhilosopher %d Finished eating ",n);
+	int hunger = 5;
+	while (hunger > 0)
+	{
+		printf("\nPhilosopher %d is thinking ",n);
+		pthread_mutex_lock(&chopstick[n]);//when philosopher 5 is eating he takes fork 1 and fork 5
+		pthread_mutex_lock(&chopstick[(n+1)%5]);
+		printf("\nPhilosopher %d is eating ",n);
+		sleep(1);
+		pthread_mutex_unlock(&chopstick[n]);
+		pthread_mutex_unlock(&chopstick[(n+1)%5]);
+		printf("\nPhilosopher %d Finished eating ",n);
+		hunger--;
+	}
 }
