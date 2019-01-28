@@ -11,6 +11,11 @@ int main()
   char *message2 = "Hello from Thread 2";
   int  iret1, iret2;
 
+  for (;;)
+  {
+	  printf("t\n");
+  }
+
   /* Create independant threads each of which will execute function */
 
   iret1 = pthread_create( &thread1, NULL, print_message_function, (void*) message1);

@@ -30,7 +30,7 @@ main()
 
 void *thread_function()
 {
-  printf("Thread number %ld\n", pthread_self());
+  printf("Thread number %ld, counter is currently %d\n", pthread_self(), counter);
   pthread_mutex_lock( &mutex1 );
   counter++;
   pthread_mutex_unlock( &mutex1 );
