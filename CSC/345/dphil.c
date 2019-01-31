@@ -1,3 +1,9 @@
+/*
+Made by Edward Auttonberry
+Dining Philosophers solution using POSIX pthreads
+For CSC 345 Operating Systems
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -17,12 +23,16 @@ int nPhilosophers;
 int main( int argc, char** argv)
 {
 	
+	// Need to run binary as well as define number of eating sessions and philosophers: 3 args
 	if (argc == 3)
 	{
 		
+		// Arg parsing
 		nPhilosophers = strtol(argv[2], (char**) NULL, 10);
 		nHunger = strtol(argv[1], (char**) NULL, 10);
 		
+		// The solution requires that the number of philosophers sitting is greater than one
+		// So that more than one chopstick exists (2 are required)
 		printf("Number of philosophers: %d\n", nPhilosophers);
 		if (nPhilosophers < 2)
 		{
@@ -31,6 +41,7 @@ int main( int argc, char** argv)
 		}
 		printf("Each philosopher will eat %d times.\n", nHunger);
 		
+		// Create mutexes
 		pthread_mutex_t mutexes[nPhilosophers];
 		for (int i = 0; i < nPhilosophers; i++)
 		{
@@ -42,8 +53,10 @@ int main( int argc, char** argv)
 			
 		}
 		
+		
 		pthread_t tThreads[nPhilosophers];
 		
+		// Start threafs
 		int i, j;
 		for(i=0; i < nPhilosophers; i++)
 		{
@@ -57,6 +70,7 @@ int main( int argc, char** argv)
 			
 		}
 		
+		// Join threads
 		for(j=0; j < nPhilosophers; j++)
 		{
 			
@@ -84,10 +98,14 @@ int main( int argc, char** argv)
 	
 }
 
+// Thread method
 void * start(void * i)
 {	
+
+	// Dereference the method argument for further use
 	int philosopher = * (int *) i;
 	int hunger = nHunger;
+	// Assign mutex indices
 	int left_mutex_index = philosopher;
 	int right_mutex_index = (philosopher + 1) % nPhilosophers;
 	printf("Philosopher %d has joined the table.\n", philosopher);
