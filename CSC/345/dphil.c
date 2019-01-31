@@ -5,7 +5,10 @@
 #include <unistd.h>
 
 #define DEBUG 0
-pthread_mutex_t chopsticks[32];
+#define MAX_PHILOSOPHERS 2048
+
+/* This program supports up to 2048 philosophers and any number of eatings */
+pthread_mutex_t chopsticks[MAX_PHILOSOPHERS];
 pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
 void* start(void* philosopher);
 int nHunger;
@@ -23,7 +26,6 @@ int main( int argc, char** argv)
 		printf("Number of philosophers: %d\n", nPhilosophers);
 		if (nPhilosophers < 2)
 		{
-			//TODO fix?
 			puts("Bad number of philosophers:\n\tThere must be at least 2.");
 			goto leave;
 		}
@@ -36,12 +38,9 @@ int main( int argc, char** argv)
 			{
 				printf("Make mutex %d.\n", i);
 			}
-			// pthread_mutex_init(&mutexes[i], NULL);
 			pthread_mutex_init( &chopsticks[i], NULL);
 			
 		}
-		
-		// chopsticks = mutexes;
 		
 		pthread_t tThreads[nPhilosophers];
 		
@@ -101,8 +100,6 @@ void * start(void * i)
 		Without this sleep the distribution of the mutexes does not vary much and the same thread can tend to hog them.
 		*/
 		usleep(1000);
-		// pthread_mutex_lock( (chopsticks + sizeof(pthread_mutex_t) * philosopher) );
-		// pthread_mutex_lock( (chopsticks + sizeof(pthread_mutex_t) * (philosopher + 1)) );
 		pthread_mutex_lock( &chopsticks[left_mutex_index] );
 		pthread_mutex_lock( &chopsticks[right_mutex_index] );
 		if (DEBUG)
@@ -110,13 +107,15 @@ void * start(void * i)
 			printf("Locked mutexes %d and %d.\n", left_mutex_index, right_mutex_index);
 		}
 		printf("Philosopher %d has eaten. Hunger is now %d.\n", philosopher, --hunger);
-		// pthread_mutex_unlock( (chopsticks + sizeof(pthread_mutex_t) * philosopher) );
-		// pthread_mutex_unlock( (chopsticks + sizeof(pthread_mutex_t) * philosopher) );
 		pthread_mutex_unlock( &chopsticks[left_mutex_index] );
 		pthread_mutex_unlock( &chopsticks[right_mutex_index] );
 		if (DEBUG)
 		{
 			printf("Unlocked mutexes %d and %d.\n", left_mutex_index, right_mutex_index);
 		}
+		
 	}
+	
+	printf("===== Philosopher %d has finished eating. =====\n", philosopher);
+	
 }
