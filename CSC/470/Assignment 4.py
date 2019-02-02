@@ -20,7 +20,7 @@ d = 500
 
 # toggleable values defining how shapes should be rendered
 cull_backface = True
-polygon_draw_mode = 1
+polygon_draw_mode = 2
 z_buffering = True
 
 
@@ -250,6 +250,86 @@ class Cube(Polyhedron):
 		self.translate(self.offset)
 
 
+# Implementation of the polyhedron superclass that models the approximation of a hollow cylindrical tube
+class Tube(Polyhedron):
+
+	def __init__(self, initial_pos, fill_color_lambda=None):
+
+		tube_point_cloud = self.generate_approximation_points(8)
+		tube = self.build_tube_faces(tube_point_cloud)
+
+		if fill_color_lambda:
+			Polyhedron.__init__(self, tube, tube_point_cloud, initial_pos, fill_color_lambda)
+		else:
+			Polyhedron.__init__(self, tube, tube_point_cloud, initial_pos)
+
+	# This function resets the cube to its original size and location in 3D space
+	def reset(self):
+		# The pyramid object is a list whose elements are references to sub-lists
+		# These sub-lists are used in the other methods. This method will not replace the sub-lists, but will instead
+		# 	modify the existing references by replacing the current values with the values that were present when the
+		# 	program began.
+		self.ulf[0] = -50
+		self.ulf[1] = 50
+		self.ulf[2] = 150
+		self.ulb[0] = -50
+		self.ulb[1] = 50
+		self.ulb[2] = 50
+		self.urb[0] = 50
+		self.urb[1] = 50
+		self.urb[2] = 50
+		self.urf[0] = 50
+		self.urf[1] = 50
+		self.urf[2] = 150
+		self.lrb[0] = 50
+		self.lrb[1] = -50
+		self.lrb[2] = 50
+		self.llb[0] = -50
+		self.llb[1] = -50
+		self.llb[2] = 50
+		self.lrf[0] = 50
+		self.lrf[1] = -50
+		self.lrf[2] = 150
+		self.llf[0] = -50
+		self.llf[1] = -50
+		self.llf[2] = 150
+		self.translate(self.offset)
+
+	# Generate the approximation points assuming a tube height of 100 Tkinter units and tube radius of 50 units
+	@staticmethod
+	def generate_approximation_points(detail):
+
+		R = 25  # radius constant
+		theta_interval = (2 * math.pi) / detail
+		upper_points, lower_points = [], []
+		for i in range(detail):
+
+			x = R*math.cos(theta_interval * i)
+			z = R*math.sin(theta_interval * i)  # if backface culling breaks its because of this
+			upper_points.append([x, 50, z])
+			lower_points.append([x, -50, z])
+
+		return upper_points + lower_points
+
+	@staticmethod
+	def build_tube_faces(point_cloud):
+
+		face_count = len(point_cloud) / 2
+		assert(face_count % 1 == 0)
+		face_count = int(face_count)
+		print(face_count)
+
+		tube = []
+		for i in range(face_count):
+			upper_right = point_cloud[i % face_count]
+			lower_right = point_cloud[face_count + i % face_count]
+			lower_left = point_cloud[face_count + (i + 1) % face_count]
+			upper_left = point_cloud[(i + 1) % face_count]
+			tube.append([upper_right, lower_right, lower_left, upper_left])
+
+		return tube
+
+
 # This object represents the edge made by the path between two points and the attributes of that line
 class Edge(object):
 
@@ -323,10 +403,14 @@ class Edge(object):
 
 # ************************************************************************************
 # Program globals
-objects = [Pyramid([0, 0, 0], lambda i: "#{}0000".format(i)),  # red pyramid
-		Pyramid([100, 300, 500], lambda i: "#00{}00".format(i)),  # green pyramid
-		Cube([200, -100, 200], lambda i: "#0000{}".format(i)),  # blue cube
-		Cube([-600, 400, 3000], lambda i: "#{}{}{}".format(i, i, i))]  # gray cube
+objects = [
+	Tube([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::]))
+	# Pyramid([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::])),  # red pyramid
+	# Pyramid([100, 300, 500], lambda i: "#00{}00".format(i)),  # green pyramid
+	# Cube([200, -100, 200], lambda i: "#0000{}".format(i)),  # blue cube
+	# Cube([-600, 400, 3000], lambda i: "#{}{}{}".format(i, i, i))  # gray cube
+
+]
 current_object_index = 0
 pixel_drawing_canvas = None
 z_buffer = None  # initialize for global use
