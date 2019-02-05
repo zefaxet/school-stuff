@@ -255,7 +255,7 @@ class Tube(Polyhedron):
 
 	def __init__(self, initial_pos, fill_color_lambda=None):
 
-		tube_point_cloud = self.generate_approximation_points(8)
+		tube_point_cloud = self.generate_approximation_points(32)
 		tube = self.build_tube_faces(tube_point_cloud)
 
 		if fill_color_lambda:
