@@ -416,7 +416,7 @@ class Edge(object):
 # ************************************************************************************
 # Program globals
 objects = [
-	Tube([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::]), lambda i: "#FF0000")
+	Tube([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::]), lambda i: "#BB0000")
 	# Pyramid([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::])),  # red pyramid
 	# Pyramid([100, 300, 500], lambda i: "#00{}00".format(i)),  # green pyramid
 	# Cube([200, -100, 200], lambda i: "#0000{}".format(i)),  # blue cube
