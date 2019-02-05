@@ -22,7 +22,8 @@ d = 500
 cull_backface = True
 polygon_draw_mode = 0
 z_buffering = True
-
+lighting_model_state = 0
+shading_model_state = 0
 
 # ***************************** Initialize Pyramid Object ***************************
 
@@ -838,11 +839,37 @@ def toggle_zbuffering(event):
 	draw_objects(objects)
 
 
+def rotate_lighting_model(event):
+	global lighting_model_state
+	lighting_model_state = (lighting_model_state + 1) % 3
+	print("Rotated lighting model to " +
+		  ["ambient diffuse only",
+		   "ambient diffuse + point diffuse",
+		   "ambient diffuse + point diffuse + point specular"
+		   ][lighting_model_state] + ".")
+	w.delete(ALL)
+	draw_objects(objects)
+
+
+def toggle_shading_model(event):
+	global shading_model_state
+	shading_model_state = (shading_model_state + 1) % 3
+	print("Toggled shading model to " +
+		  ["faceted shading",
+		   "Goraud shading",
+		   "Phong shading"
+		   ][shading_model_state] + ".")
+	w.delete(ALL)
+	draw_objects(objects)
+
+
 root = Tk()
 # bind toggles
 root.bind('b', toggle_backface_culling)
 root.bind('f', toggle_polygon_filling)
 root.bind('z', toggle_zbuffering)
+root.bind('l', rotate_lighting_model)
+root.bind('s', toggle_shading_model)
 outer_frame = Frame(root)
 outer_frame.pack()
 
