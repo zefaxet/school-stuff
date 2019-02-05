@@ -253,15 +253,20 @@ class Cube(Polyhedron):
 # Implementation of the polyhedron superclass that models the approximation of a hollow cylindrical tube
 class Tube(Polyhedron):
 
-	def __init__(self, initial_pos, fill_color_lambda=None):
+	def __init__(self, initial_pos, outer_fill_color_lambda=None, inner_fill_color_lambda=None):
 
 		tube_point_cloud = self.generate_approximation_points(32)
-		tube = self.build_tube_faces(tube_point_cloud)
+		outer_tube, inner_tube = self.build_tube_faces(tube_point_cloud)
 
-		if fill_color_lambda:
-			Polyhedron.__init__(self, tube, tube_point_cloud, initial_pos, fill_color_lambda)
+		if outer_fill_color_lambda:
+			Polyhedron.__init__(self, outer_tube, tube_point_cloud, initial_pos, outer_fill_color_lambda)
 		else:
-			Polyhedron.__init__(self, tube, tube_point_cloud, initial_pos)
+			Polyhedron.__init__(self, outer_tube, tube_point_cloud, initial_pos)
+		
+		if inner_fill_color_lambda:
+			self.inner_polyhedron = Polyhedron(inner_tube, tube_point_cloud, initial_pos, inner_fill_color_lambda)
+		else:
+			self.inner_polyhedron = Polyhedron(inner_tube, tube_point_cloud, initial_pos)
 
 	# This function resets the cube to its original size and location in 3D space
 	def reset(self):
@@ -294,6 +299,11 @@ class Tube(Polyhedron):
 		self.llf[1] = -50
 		self.llf[2] = 150
 		self.translate(self.offset)
+	
+	def draw(self):
+		
+		super().draw()
+		self.inner_polyhedron.draw()
 
 	# Generate the approximation points assuming a tube height of 100 Tkinter units and tube radius of 50 units
 	@staticmethod
@@ -319,15 +329,17 @@ class Tube(Polyhedron):
 		face_count = int(face_count)
 		print(face_count)
 
-		tube = []
+		outer_tube = []
+		inner_tube = []
 		for i in range(face_count):
 			upper_right = point_cloud[i % face_count]
 			lower_right = point_cloud[face_count + i % face_count]
 			lower_left = point_cloud[face_count + (i + 1) % face_count]
 			upper_left = point_cloud[(i + 1) % face_count]
-			tube.append([upper_right, lower_right, lower_left, upper_left])
+			outer_tube.append([upper_right, lower_right, lower_left, upper_left])
+			inner_tube.append([upper_left, lower_left, lower_right, upper_right])
 
-		return tube
+		return outer_tube, inner_tube
 
 
 # This object represents the edge made by the path between two points and the attributes of that line
