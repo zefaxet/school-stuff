@@ -559,22 +559,21 @@ def draw_poly(poly, color, fill_color_lambda):
 						if len(gradient) == 1:
 							gradient = '0' + gradient
 						# Generate the color for the pixel using the object's fill color lambda
+						# This list contains integers
 						object_color_values = fill_color_lambda(gradient)
-						print(object_color_values)
-						# TODO Apply lighting
+						# apply Ambient diffuse lighting
+						object_color_values = map(lambda k, i: k * i, object_color_values, ambient_light_intensity)
 						# Build color string
-						# The PhotoImage class doesn't like negative coordinates
 						color_value_strings = list(
 							map(
 								lambda i: '00' if len(i) == 0 else (('0' + i) if len(i) == 1 else i),
 								map(
-									lambda i: str(hex(i))[2::], object_color_values
+									lambda i: str(hex(int(i)))[2::], object_color_values
 								)
 							)
 						)
-						print(color_value_strings)
-						# color_value_strings = list(map(lambda i: i if len(i) > 1 else ("0" + i), color_value_strings))
 						color_string = "#{}{}{}".format(*color_value_strings)
+						# The PhotoImage class doesn't like negative coordinates
 						if x >= 0 and scan_y >= 0:
 							pixel_drawing_canvas.put(color_string, (x, scan_y))
 					current_z += z_partial_x
@@ -823,6 +822,14 @@ def select():
 		draw_objects(objects)
 
 
+def change_ambient_intensity(value):
+	global ambient_light_intensity
+	ambient_light_intensity = list(map(lambda i: min(1, max(i + value, 0)), ambient_light_intensity))
+	print(ANSI_RED + "Changed ambient light intensity by {}.".format(value) + ANSI_END)
+	w.delete(ALL)
+	draw_objects(objects)
+
+
 # toggles backface culling of objects and redraws them
 # Bound to the 'B' key
 def toggle_backface_culling(event):
@@ -966,5 +973,17 @@ zPlusButton.pack(side=LEFT)
 
 zMinusButton = Button(rotation_controls, text="Z-", command=z_minus)
 zMinusButton.pack(side=LEFT)
+
+lighting_controls = Frame(control_panel, borderwidth=2, relief=RIDGE)
+lighting_controls.pack(side=LEFT)
+
+lighting_controls_label = Label(lighting_controls, text="Lighting")
+lighting_controls_label.pack()
+
+ambientPlusButton = Button(lighting_controls, text="I+", command=lambda: change_ambient_intensity(0.1))
+ambientPlusButton.pack(side=LEFT)
+
+ambientMinusButton = Button(lighting_controls, text="I-", command=lambda: change_ambient_intensity(-0.1))
+ambientMinusButton.pack(side=LEFT)
 
 root.mainloop()
