@@ -122,8 +122,9 @@ class Polyhedron:
 		edge_color = 'red' if self is objects[current_object_index] else 'blue'
 		for poly in self.polygons:
 			# Filter visible faces with backface culling
-			if not cull_backface or should_draw_polygon(poly):
-				draw_poly(poly, edge_color, self.color_string_lambda)
+			draw, unit_normal = should_draw_polygon(poly)
+			if not cull_backface or draw:
+				draw_poly(poly, edge_color, self.color_string_lambda, unit_normal)
 
 
 # Implementation of the Polyhedron superclass that models the pyramid as it was in assignment 1
@@ -414,6 +415,14 @@ class Edge(object):
 																			+ "Dz is " + str(self.dz)
 
 
+class PointLightSource(object):
+
+	def __init__(self, position, color):
+
+		self.position = position
+		self.color = color
+
+
 # ************************************************************************************
 # Program globals
 objects = [
@@ -427,7 +436,8 @@ objects = [
 current_object_index = 0
 pixel_drawing_canvas = None
 z_buffer = None  # initialize for global use
-ambient_light_intensity = [1.0, 1.0, 1.0]
+ambient_light_intensity = [0.3, 0.3, 0.3]
+light_sources = [PointLightSource([1.0, 1.0, -1.0], [255, 255, 255])]
 
 
 # Determines whether or not a polygon should be subject to backface culling
@@ -438,7 +448,7 @@ def should_draw_polygon(poly):
 	edge_2 = vector_subtract(poly[0], poly[2])
 	unit_normal = get_unit_normal(edge_1, edge_2)
 	anchor_constant = vector_dot(unit_normal, poly[0])
-	return vector_dot(unit_normal, [0, 0, d]) + anchor_constant > 0
+	return vector_dot(unit_normal, [0, 0, d]) + anchor_constant > 0, unit_normal
 
 
 # This creates an Edge object from a starting and an ending point given in Cartesian coordinates
@@ -470,7 +480,7 @@ def draw_objects(scene_objects):
 
 # This function will draw a polygon by repeatedly calling drawLine on each pair of points
 # making up the object.  Remember to draw a line between the last point and the first.
-def draw_poly(poly, color, fill_color_lambda):
+def draw_poly(poly, color, fill_color_lambda, unit_normal):
 
 	global z_buffer
 	edge_table = []
@@ -562,13 +572,25 @@ def draw_poly(poly, color, fill_color_lambda):
 						# This list contains integers
 						object_color_values = fill_color_lambda(gradient)
 						# apply Ambient diffuse lighting
-						object_color_values = map(lambda k, i: k * i, object_color_values, ambient_light_intensity)
+						ambient_color_values = list(map(lambda k, i: k * i, object_color_values, ambient_light_intensity))
+						# apply point diffuse and point specular lighting conditionally
+						for source in light_sources:
+							# if point diffuse is enabled
+							if lighting_model_state > 0:
+								source_vector_normal = normalize_vector(source.position)
+								cos_fi = vector_dot(unit_normal, source_vector_normal)
+								for color in range(len(ambient_color_values)):
+									i = source.color[color]
+									k = object_color_values[color]
+									# TODO why negatives?
+									ambient_color_values[i] =
+						print(ambient_color_values)
 						# Build color string
 						color_value_strings = list(
 							map(
 								lambda i: '00' if len(i) == 0 else (('0' + i) if len(i) == 1 else i),
 								map(
-									lambda i: str(hex(int(i)))[2::], object_color_values
+									lambda i: str(hex(int(i)))[2::], ambient_color_values
 								)
 							)
 						)
@@ -685,10 +707,15 @@ def get_unit_normal(v1, v2):
 		v1[2] * v2[0] - v1[0] * v2[2],
 		v1[0] * v2[1] - v1[1] * v2[0]
 	]
-	magnitude = math.sqrt(normal[0] ** 2 + normal[1] ** 2 + normal[2] ** 2)
 
-	return list(map(lambda i: i / magnitude, normal))
+	return normalize_vector(normal)
 
+
+def normalize_vector(vector):
+
+	magnitude = math.sqrt(vector[0] ** 2 + vector[1] ** 2 + vector[2] ** 2)
+
+	return list(map(lambda i: i / magnitude, vector))
 
 # Calculates the dot product of two vectors in any dimension
 def vector_dot(v1, v2):
