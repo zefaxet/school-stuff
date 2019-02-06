@@ -417,7 +417,7 @@ class Edge(object):
 # ************************************************************************************
 # Program globals
 objects = [
-	Tube([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::]), lambda i: "#BB0000")
+	Tube([0, 0, 0], lambda i: [0x00, 0x00, 0xBB], lambda i: [0xBB, 0x00, 0x00])
 	# Pyramid([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::])),  # red pyramid
 	# Pyramid([100, 300, 500], lambda i: "#00{}00".format(i)),  # green pyramid
 	# Cube([200, -100, 200], lambda i: "#0000{}".format(i)),  # blue cube
@@ -427,6 +427,7 @@ objects = [
 current_object_index = 0
 pixel_drawing_canvas = None
 z_buffer = None  # initialize for global use
+ambient_light_intensity = [1.0, 1.0, 1.0]
 
 
 # Determines whether or not a polygon should be subject to backface culling
@@ -558,10 +559,24 @@ def draw_poly(poly, color, fill_color_lambda):
 						if len(gradient) == 1:
 							gradient = '0' + gradient
 						# Generate the color for the pixel using the object's fill color lambda
-						gradient_string = fill_color_lambda(gradient)
+						object_color_values = fill_color_lambda(gradient)
+						print(object_color_values)
+						# TODO Apply lighting
+						# Build color string
 						# The PhotoImage class doesn't like negative coordinates
+						color_value_strings = list(
+							map(
+								lambda i: '00' if len(i) == 0 else (('0' + i) if len(i) == 1 else i),
+								map(
+									lambda i: str(hex(i))[2::], object_color_values
+								)
+							)
+						)
+						print(color_value_strings)
+						# color_value_strings = list(map(lambda i: i if len(i) > 1 else ("0" + i), color_value_strings))
+						color_string = "#{}{}{}".format(*color_value_strings)
 						if x >= 0 and scan_y >= 0:
-							pixel_drawing_canvas.put(gradient_string, (x, scan_y))
+							pixel_drawing_canvas.put(color_string, (x, scan_y))
 					current_z += z_partial_x
 
 			popped = False
