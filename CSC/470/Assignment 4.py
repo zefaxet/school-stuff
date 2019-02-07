@@ -1,11 +1,9 @@
 # Name: Edward Auttonberry
 # CWID: 102-48-286
-# DATE: 12//2018
-# Assignment 3 -- Backface Culling; Polygon Filling; Z-Buffering
-# Desc: This produces a set of solid objects in a pseduo-three-dimensional environment.
-# Rendered are two cubes and two pyramids, each with in-place translation, uniform scaling, nad
-# rotation. Z-buffering and backface culling techniques are applied for hidden surface removal.
-# Polygon filling, z-buffering, wireframes, and backface culling can all be toggled using the 'Z', 'B', and 'F' keys.
+# DATE: 2/7/2019
+# Assignment 4 -- Lighting and Shading
+# Desc: This program draws a hollow cylindrical tube in a pseudo-three dimensional environemnt. The environment
+# simulates a light source, which is reflected off of the surfaces of the tube.
 
 import math
 from tkinter import *
@@ -33,7 +31,7 @@ shading_model_state = 0
 # for any object that we draw on the canvas.
 class Polyhedron:
 	def __init__(self, centered_shape, point_cloud, initial_pos,
-				base_color=deepcopy([0, 0, 0]), reflection_color=deepcopy([0, 0, 0])):
+				base_color, reflection_color):
 
 		self.offset = initial_pos
 		self.polygons = centered_shape
@@ -257,20 +255,14 @@ class Cube(Polyhedron):
 # Implementation of the polyhedron superclass that models the approximation of a hollow cylindrical tube
 class Tube(Polyhedron):
 
-	def __init__(self, initial_pos, inner_base_color=None, inner_fill_color_lambda=None):
+	def __init__(self, initial_pos, outer_base_color, inner_fill_color):
 
 		tube_point_cloud = self.generate_approximation_points(32)
 		outer_tube, inner_tube = self.build_tube_faces(tube_point_cloud)
 
-		if inner_base_color:
-			Polyhedron.__init__(self, outer_tube, tube_point_cloud, initial_pos, inner_base_color, [255, 255, 255])
-		else:
-			Polyhedron.__init__(self, outer_tube, tube_point_cloud, initial_pos)
-		
-		if inner_fill_color_lambda:
-			self.inner_polyhedron = Polyhedron(inner_tube, tube_point_cloud, initial_pos, inner_fill_color_lambda)
-		else:
-			self.inner_polyhedron = Polyhedron(inner_tube, tube_point_cloud, initial_pos)
+		Polyhedron.__init__(self, outer_tube, tube_point_cloud, initial_pos, outer_base_color, [200, 152, 255-0xBB])
+
+		self.inner_polyhedron = Polyhedron(inner_tube, tube_point_cloud, initial_pos, inner_fill_color, [255, 0, 0])
 
 	# This function resets the cube to its original size and location in 3D space
 	def reset(self):
@@ -279,7 +271,9 @@ class Tube(Polyhedron):
 		# 	modify the existing references by replacing the current values with the values that were present when the
 		# 	program began.
 
-		# TODO implement
+		tube_point_cloud = self.generate_approximation_points(32)
+		for i in range(len(self.point_cloud)):
+			self.point_cloud[i] = tube_point_cloud[i]
 
 		self.translate(self.offset)
 	
@@ -304,6 +298,7 @@ class Tube(Polyhedron):
 
 		return upper_points + lower_points
 
+	# This method builds the approximation faces and associates them for lighting models
 	@staticmethod
 	def build_tube_faces(point_cloud):
 
@@ -343,7 +338,7 @@ class Tube(Polyhedron):
 
 		return outer_tube, inner_tube
 
-
+# This class contains information about the faces of a polyhedron
 class Polygon(object):
 
 	def __init__(self, vertices):
@@ -377,12 +372,12 @@ class Edge(object):
 		self.start = min(p1, p2, key=lambda point: point[1])
 		self.end = p2 if (p1 is self.start) else p1
 
-	def set_vertex_normals(self, v1, v2, color):
+	def set_vertex_normals(self, v1, v2, color, reflection_color):
 
 		self.v1 = v1
 		self.v2 = v2
-		self.i1 = get_lit_color(color, v1)
-		self.i2 = get_lit_color(color, v2)
+		self.i1 = get_lit_color(color, v1, reflection_color)
+		self.i2 = get_lit_color(color, v2, reflection_color)
 
 	@property
 	def x_start(self):
@@ -471,7 +466,7 @@ class Edge(object):
 																			+ "Dx is " + str(self.dx) + "\n"\
 																			+ "Dz is " + str(self.dz)
 
-
+# Contains basic information about point light sources
 class PointLightSource(object):
 
 	def __init__(self, position, color):
@@ -533,7 +528,7 @@ def draw_poly(poly, color, polyhedron):
 
 		# calculate color for polygon here if lambert shading is active
 		if shading_model_state == 0:
-			final_color_values = get_lit_color(polyhedron.base_color, poly.unit_normal)
+			final_color_values = get_lit_color(polyhedron.base_color, poly.unit_normal, polyhedron.reflection_color)
 
 		# Generate all of the edges in the polygon
 		if DEBUG:
@@ -546,7 +541,7 @@ def draw_poly(poly, color, polyhedron):
 				# TODO maybe update for other polyhedrons
 				vertex_normal1 = normalize_vector(vector_add(poly.unit_normal, poly.neighbours[point].unit_normal))
 				vertex_normal2 = normalize_vector(vector_add(poly.unit_normal, poly.neighbours[next_i].unit_normal))
-				edge.set_vertex_normals(vertex_normal1, vertex_normal2, polyhedron.base_color)
+				edge.set_vertex_normals(vertex_normal1, vertex_normal2, polyhedron.base_color, polyhedron.reflection_color)
 			# Ignore horizontal edges
 			if edge.slope != 0:
 				if DEBUG:
@@ -642,7 +637,7 @@ def draw_poly(poly, color, polyhedron):
 						if shading_model_state == 1:
 							final_color_values = current_i
 						elif shading_model_state == 2:
-							final_color_values = get_lit_color(polyhedron.base_color, current_n)
+							final_color_values = get_lit_color(polyhedron.base_color, current_n, polyhedron.reflection_color)
 
 						# Build color string
 						# print(final_color_values)
@@ -805,26 +800,40 @@ def vector_dot(v1, v2):
 	return product
 
 
-def get_lit_color(base_color, normal):
+# Calculates the color based on the current lighting model and some variable parameteres
+def get_lit_color(base_color, normal, specular_reflectivity):
 	# start with the ambient component
 	final_lighting = map(lambda k, i: k * i, base_color, ambient_light_intensity)
 
-	# calculate point diffuse component when applicable
 	if lighting_model_state > 0:
 		# TODO using the color of the source for intensity, have the intensity decrease using exp() as object moves away?
+		# calculate point diffuse component when applicable
 		for source in light_sources:
 			point_intensity = source.color
-			position = normalize_vector(list(map(lambda i: -i, source.position)))
-			point_diffuse_component = map(lambda i, k: max(i * k * vector_dot(normal, position), 0),
+			light_position = normalize_vector(list(map(lambda i: -i, source.position)))  # L
+			point_diffuse_component = map(lambda i, k: max(i * k * vector_dot(normal, light_position), 0),
 										point_intensity, base_color)
 			final_lighting = map(lambda a, b: a + b, final_lighting, point_diffuse_component)
+			if lighting_model_state == 2:
+				view_vector = normalize_vector([0, 0, d])
+				cos_fi = vector_dot(normal, light_position)
+				if cos_fi == 0:
+					reflection_vector = map(lambda l: -l, light_position)
+				elif cos_fi > 0:
+					reflection_vector = map(lambda n, l: n - (l / (2*cos_fi)), normal, light_position)
+				else:
+					reflection_vector = map(lambda n, l: -n + (l / (2*cos_fi)), normal, light_position)
+				cos_theta = vector_dot(view_vector, normalize_vector(list(reflection_vector)))
+				specular_component = map(lambda i, k: i * k * cos_theta ** n, point_intensity, specular_reflectivity)
+				final_lighting = list(map(lambda a, b: a + b, final_lighting, specular_component))
+				# print(final_lighting)
 
 	return list(map(lambda i, k: max(min(k, i), 0), final_lighting, base_color))
 
 
 # Program globals
 objects = [
-	Tube([0, 0, 0], [0x00, 0x00, 0xBB], [0xBB, 0x00, 0x00])
+	Tube([0, 0, 0], [0xBB, 0xBB, 0xBB], [0xBB, 0x00, 0x00])
 	# Pyramid([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::])),  # red pyramid
 	# Pyramid([100, 300, 500], lambda i: "#00{}00".format(i)),  # green pyramid
 	# Cube([200, -100, 200], lambda i: "#0000{}".format(i)),  # blue cube
@@ -836,6 +845,7 @@ pixel_drawing_canvas = None
 z_buffer = None  # initialize for global use
 ambient_light_intensity = [0.3, 0.3, 0.3]
 light_sources = [PointLightSource([1.0, 1.0, -1.0], [1.0, 1.0, 1.0])]
+n = 1
 
 # **************************************************************************
 # Everything below this point implements the interface
@@ -963,6 +973,21 @@ def change_ambient_intensity(value):
 	ambient_light_intensity = list(map(lambda i: min(1, max(i + value, 0)), ambient_light_intensity))
 	print(ANSI_RED + "Changed ambient light intensity by {} ".format(value) +
 		"to {}".format(ambient_light_intensity) + ANSI_END)
+	w.delete(ALL)
+	draw_objects(objects)
+
+
+def change_n(value):
+	global n
+	n += value
+	w.delete(ALL)
+	draw_objects(objects)
+
+
+def change_rgb(i, value):
+	global light_sources
+	old = light_sources[0].color[i]
+	light_sources[0].color[i] = min(1.0, max(0, old + value))
 	w.delete(ALL)
 	draw_objects(objects)
 
@@ -1114,13 +1139,33 @@ zMinusButton.pack(side=LEFT)
 lighting_controls = Frame(control_panel, borderwidth=2, relief=RIDGE)
 lighting_controls.pack(side=LEFT)
 
-lighting_controls_label = Label(lighting_controls, text="Ambient")
-lighting_controls_label.pack()
+lighting_controls_label = Label(lighting_controls, text="Lighting")
+lighting_controls_label.pack(side=TOP)
 
 ambientPlusButton = Button(lighting_controls, text="I+", command=lambda: change_ambient_intensity(0.1))
 ambientPlusButton.pack(side=LEFT)
 
 ambientMinusButton = Button(lighting_controls, text="I-", command=lambda: change_ambient_intensity(-0.1))
 ambientMinusButton.pack(side=LEFT)
+
+nminus = Button(lighting_controls, text="n-", command=lambda: change_n(-2))
+nminus.pack(side=LEFT)
+nplus = Button(lighting_controls, text="n+", command=lambda: change_n(2))
+nplus.pack(side=LEFT)
+
+rminus = Button(lighting_controls, text="r-", command=lambda: change_rgb(0, -0.1))
+rminus.pack(side=LEFT)
+rplus = Button(lighting_controls, text="r+", command=lambda: change_rgb(0, 0.1))
+rplus.pack(side=LEFT)
+
+gminus = Button(lighting_controls, text="g-", command=lambda: change_rgb(1, -0.1))
+gminus.pack(side=LEFT)
+gplus = Button(lighting_controls, text="g+", command=lambda: change_rgb(1, 0.1))
+gplus.pack(side=LEFT)
+
+bminus = Button(lighting_controls, text="b-", command=lambda: change_rgb(2, -0.1))
+bminus.pack(side=LEFT)
+bplus = Button(lighting_controls, text="b+", command=lambda: change_rgb(2, 0.1))
+bplus.pack(side=LEFT)
 
 root.mainloop()
