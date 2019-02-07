@@ -256,13 +256,13 @@ class Cube(Polyhedron):
 # Implementation of the polyhedron superclass that models the approximation of a hollow cylindrical tube
 class Tube(Polyhedron):
 
-	def __init__(self, initial_pos, outer_fill_color_lambda=None, inner_fill_color_lambda=None):
+	def __init__(self, initial_pos, inner_base_color=None, inner_fill_color_lambda=None):
 
 		tube_point_cloud = self.generate_approximation_points(32)
 		outer_tube, inner_tube = self.build_tube_faces(tube_point_cloud)
 
-		if outer_fill_color_lambda:
-			Polyhedron.__init__(self, outer_tube, tube_point_cloud, initial_pos, outer_fill_color_lambda)
+		if inner_base_color:
+			Polyhedron.__init__(self, outer_tube, tube_point_cloud, initial_pos, inner_base_color, [255, 255, 255])
 		else:
 			Polyhedron.__init__(self, outer_tube, tube_point_cloud, initial_pos)
 		
@@ -570,22 +570,9 @@ def draw_poly(poly, color, unit_normal, polyhedron):
 						gradient_hex = hex(gradient_value)
 						# Cuts off the '0x' that the hex string starts with
 						gradient = str(gradient_hex)[2::]
-
-						# ambient_color_values = list(map(lambda k, i: k * i, object_color_values, ambient_light_intensity))
-						# # apply point diffuse and point specular lighting conditionally
-						# for source in light_sources:
-						# 	# if point diffuse is enabled
-						# 	if lighting_model_state > 0:
-						# 		source_vector_normal = normalize_vector(source.position)
-						# 		cos_fi = vector_dot(unit_normal, source_vector_normal)
-						# 		for color in range(len(ambient_color_values)):
-						# 			i = source.color[color]
-						# 			k = object_color_values[color]
-						# 			# TODO why negatives?
-						# 			ambient_color_values[i] =
-						# print(ambient_color_values)
+						
 						# Build color string
-						# print(final_color_values)
+						print(final_color_values[2])
 						color_value_strings = list(
 							map(
 								lambda i: '00' if len(i) == 0 else (('0' + i) if len(i) == 1 else i),
@@ -730,7 +717,6 @@ def vector_dot(v1, v2):
 
 
 def get_lit_color(base_color, normal):
-
 	# start with the ambient component
 	final_lighting = map(lambda k, i: k * i, base_color, ambient_light_intensity)
 
@@ -739,13 +725,13 @@ def get_lit_color(base_color, normal):
 		# TODO using the color of the source for intensity, have the intensity decrease using exp() as object moves away?
 		for source in light_sources:
 			point_intensity = source.color
-			position = normalize_vector(source.position)
-			for i in range(len(base_color)):
-				print(point_intensity[i], base_color[i], vector_dot(normal, position))
-			point_diffuse_component = map(lambda i, k: i * 255 * vector_dot(normal, position), point_intensity, base_color)
+			position = normalize_vector(list(map(lambda i: -i, source.position)))
+			point_diffuse_component = map(lambda i, k: max(i * k * vector_dot(normal, position), 0),
+										point_intensity, base_color)
 			final_lighting = map(lambda a, b: a + b, final_lighting, point_diffuse_component)
 
-	return list(map(lambda i: max(min(255.0, i), 0), final_lighting))
+	return list(map(lambda i, k: max(min(k, i), 0), final_lighting, base_color))
+
 
 # **************************************************************************
 # Everything below this point implements the interface
@@ -871,7 +857,8 @@ def select():
 def change_ambient_intensity(value):
 	global ambient_light_intensity
 	ambient_light_intensity = list(map(lambda i: min(1, max(i + value, 0)), ambient_light_intensity))
-	print(ANSI_RED + "Changed ambient light intensity by {}.".format(value) + ANSI_END)
+	print(ANSI_RED + "Changed ambient light intensity by {} ".format(value) +
+		"to {}".format(ambient_light_intensity) + ANSI_END)
 	w.delete(ALL)
 	draw_objects(objects)
 
@@ -1023,7 +1010,7 @@ zMinusButton.pack(side=LEFT)
 lighting_controls = Frame(control_panel, borderwidth=2, relief=RIDGE)
 lighting_controls.pack(side=LEFT)
 
-lighting_controls_label = Label(lighting_controls, text="Lighting")
+lighting_controls_label = Label(lighting_controls, text="Ambient")
 lighting_controls_label.pack()
 
 ambientPlusButton = Button(lighting_controls, text="I+", command=lambda: change_ambient_intensity(0.1))
