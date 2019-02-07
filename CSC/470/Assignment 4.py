@@ -122,10 +122,12 @@ class Polyhedron:
 	def draw(self):
 		edge_color = 'red' if self is objects[current_object_index] else 'blue'
 		for poly in self.polygons:
+			poly.refresh_normal()
+		for poly in self.polygons:
+
 			# Filter visible faces with backface culling
-			draw, unit_normal = should_draw_polygon(poly)
-			if not cull_backface or draw:
-				draw_poly(poly, edge_color, unit_normal, self)
+			if not cull_backface or poly.draw:
+				draw_poly(poly, edge_color, poly.unit_normal, self)
 
 
 # Implementation of the Polyhedron superclass that models the pyramid as it was in assignment 1
@@ -322,7 +324,23 @@ class Tube(Polyhedron):
 			inner_tube.append(Polygon([upper_left, lower_left, lower_right, upper_right]))
 
 		for i in range(face_count):
-			
+			# add left and right faces as neighbours
+			current_outer_face = outer_tube[i]
+			left_outer_face = outer_tube[(i - 1) % face_count]
+			right_outer_face = outer_tube[(i + 1) % face_count]
+			current_outer_face.add_neighbour(left_outer_face)
+			current_outer_face.add_neighbour(left_outer_face)
+			current_outer_face.add_neighbour(right_outer_face)
+			current_outer_face.add_neighbour(right_outer_face)
+
+			# do the same for the inner faces
+			current_inner_face = inner_tube[i]
+			left_inner_face = outer_tube[(i - 1) % face_count]
+			right_inner_face = outer_tube[(i + 1) % face_count]
+			current_inner_face.add_neighbour(left_inner_face)
+			current_inner_face.add_neighbour(left_inner_face)
+			current_inner_face.add_neighbour(right_inner_face)
+			current_inner_face.add_neighbour(right_inner_face)
 
 		return outer_tube, inner_tube
 
@@ -337,8 +355,12 @@ class Polygon(object):
 		self.__iterator = 0
 
 	def add_neighbour(self, polygon):
-
+		assert(type(polygon) is Polygon)
 		self.neighbours.append(polygon)
+
+	def refresh_normal(self):
+
+		self.draw, self.unit_normal = should_draw_polygon(self.vertices)
 
 	def __getitem__(self, i):
 
