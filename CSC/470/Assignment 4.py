@@ -33,13 +33,13 @@ shading_model_state = 0
 # for any object that we draw on the canvas.
 class Polyhedron:
 	def __init__(self, centered_shape, point_cloud, initial_pos,
-				 base_color=deepcopy([0,0,0]), reflection_color=deepcopy([0,0,0])):
+				base_color=deepcopy([0, 0, 0]), reflection_color=deepcopy([0, 0, 0])):
 
 		self.offset = initial_pos
 		self.polygons = centered_shape
 		self.point_cloud = point_cloud
 		self.translate(initial_pos)
-		self.base_color=base_color
+		self.base_color = base_color
 		self.reflection_color = reflection_color
 
 	# This function performs a simple uniform scale of an object assuming the object is
@@ -277,30 +277,9 @@ class Tube(Polyhedron):
 		# These sub-lists are used in the other methods. This method will not replace the sub-lists, but will instead
 		# 	modify the existing references by replacing the current values with the values that were present when the
 		# 	program began.
-		self.ulf[0] = -50
-		self.ulf[1] = 50
-		self.ulf[2] = 150
-		self.ulb[0] = -50
-		self.ulb[1] = 50
-		self.ulb[2] = 50
-		self.urb[0] = 50
-		self.urb[1] = 50
-		self.urb[2] = 50
-		self.urf[0] = 50
-		self.urf[1] = 50
-		self.urf[2] = 150
-		self.lrb[0] = 50
-		self.lrb[1] = -50
-		self.lrb[2] = 50
-		self.llb[0] = -50
-		self.llb[1] = -50
-		self.llb[2] = 50
-		self.lrf[0] = 50
-		self.lrf[1] = -50
-		self.lrf[2] = 150
-		self.llf[0] = -50
-		self.llf[1] = -50
-		self.llf[2] = 150
+
+		# TODO implement
+
 		self.translate(self.offset)
 	
 	def draw(self):
@@ -339,10 +318,35 @@ class Tube(Polyhedron):
 			lower_right = point_cloud[face_count + i % face_count]
 			lower_left = point_cloud[face_count + (i + 1) % face_count]
 			upper_left = point_cloud[(i + 1) % face_count]
-			outer_tube.append([upper_right, lower_right, lower_left, upper_left])
-			inner_tube.append([upper_left, lower_left, lower_right, upper_right])
+			outer_tube.append(Polygon([upper_right, lower_right, lower_left, upper_left]))
+			inner_tube.append(Polygon([upper_left, lower_left, lower_right, upper_right]))
+
+		for i in range(face_count):
+			
 
 		return outer_tube, inner_tube
+
+
+class Polygon(object):
+
+	def __init__(self, vertices):
+
+		self.vertices = vertices
+		self.neighbours = []
+		self.draw, self.unit_normal = should_draw_polygon(self.vertices)
+		self.__iterator = 0
+
+	def add_neighbour(self, polygon):
+
+		self.neighbours.append(polygon)
+
+	def __getitem__(self, i):
+
+		return self.vertices[i]
+
+	def __len__(self):
+
+		return len(self.vertices)
 
 
 # This object represents the edge made by the path between two points and the attributes of that line
@@ -425,21 +429,6 @@ class PointLightSource(object):
 
 
 # ************************************************************************************
-# Program globals
-objects = [
-	Tube([0, 0, 0], [0x00, 0x00, 0xBB], [0xBB, 0x00, 0x00])
-	# Pyramid([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::])),  # red pyramid
-	# Pyramid([100, 300, 500], lambda i: "#00{}00".format(i)),  # green pyramid
-	# Cube([200, -100, 200], lambda i: "#0000{}".format(i)),  # blue cube
-	# Cube([-600, 400, 3000], lambda i: "#{}{}{}".format(i, i, i))  # gray cube
-
-]
-current_object_index = 0
-pixel_drawing_canvas = None
-z_buffer = None  # initialize for global use
-ambient_light_intensity = [0.1, 0.1, 0.1]
-light_sources = [PointLightSource([1.0, 1.0, -1.0], [1.0, 1.0, 1.0])]
-
 
 # Determines whether or not a polygon should be subject to backface culling
 def should_draw_polygon(poly):
@@ -572,7 +561,7 @@ def draw_poly(poly, color, unit_normal, polyhedron):
 						gradient = str(gradient_hex)[2::]
 						
 						# Build color string
-						print(final_color_values[2])
+						# print(final_color_values)
 						color_value_strings = list(
 							map(
 								lambda i: '00' if len(i) == 0 else (('0' + i) if len(i) == 1 else i),
@@ -732,6 +721,21 @@ def get_lit_color(base_color, normal):
 
 	return list(map(lambda i, k: max(min(k, i), 0), final_lighting, base_color))
 
+
+# Program globals
+objects = [
+	Tube([0, 0, 0], [0x00, 0x00, 0xBB], [0xBB, 0x00, 0x00])
+	# Pyramid([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::])),  # red pyramid
+	# Pyramid([100, 300, 500], lambda i: "#00{}00".format(i)),  # green pyramid
+	# Cube([200, -100, 200], lambda i: "#0000{}".format(i)),  # blue cube
+	# Cube([-600, 400, 3000], lambda i: "#{}{}{}".format(i, i, i))  # gray cube
+
+]
+current_object_index = 0
+pixel_drawing_canvas = None
+z_buffer = None  # initialize for global use
+ambient_light_intensity = [0.1, 0.1, 0.1]
+light_sources = [PointLightSource([1.0, 1.0, -1.0], [1.0, 1.0, 1.0])]
 
 # **************************************************************************
 # Everything below this point implements the interface
