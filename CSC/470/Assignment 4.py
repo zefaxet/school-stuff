@@ -454,6 +454,17 @@ class Edge(object):
 
 			return [0.0, 0.0, 0.0]
 
+	# dn/dy
+	@property
+	def dn(self):
+		try:
+
+			return list(map(lambda n: n / (self.y_end - self.y_start), vector_subtract(self.v2, self.v1)))
+
+		except ZeroDivisionError:
+
+			return [0.0, 0.0, 0.0]
+
 	def __str__(self):
 		return "Edge starting at " + str(self.start) + " and ending at " + str(self.end) + ".\n" \
 																			"Slope is " + str(self.slope) + "\n"\
@@ -576,6 +587,9 @@ def draw_poly(poly, color, polyhedron):
 		if shading_model_state == 1:
 			first_edge_i = start_edge.i1
 			end_edge_i = end_edge.i1
+		elif shading_model_state == 2:
+			first_edge_n = start_edge.v1
+			end_edge_n = end_edge.v1
 
 		# same offset but for dz/dy
 		first_edge_z = start_edge.z_start
@@ -593,19 +607,28 @@ def draw_poly(poly, color, polyhedron):
 				if shading_model_state == 1:
 					start_intensity = start_edge.i1
 					end_intensity = end_edge.i2
+				elif shading_model_state == 2:
+					start_normal = start_edge.v1
+					end_normal = end_edge.v2
 				# calculate the change in z over the horizontal line
 				try:
 					dx = float(end_value - start_value)
 					z_partial_x = (end_edge_z - first_edge_z) / dx
 					if shading_model_state == 1:
 						i_partial_x = list(map(lambda i: i / dx, vector_subtract(end_intensity, start_intensity)))
+					elif shading_model_state == 2:
+						n_partial_x = list(map(lambda n: n / dx, vector_subtract(end_normal, start_normal)))
 				except ZeroDivisionError:
 					z_partial_x = 0
 					if shading_model_state == 1:
 						i_partial_x = [0, 0, 0]
+					elif shading_model_state == 2:
+						n_partial_x = [0, 0, 0]
 				current_z = first_edge_z
 				if shading_model_state == 1:
 					current_i = start_intensity
+				elif shading_model_state == 2:
+					current_n = start_normal
 				# fill the polygon on the current scan line
 				for x in range(start_value, end_value):
 					# calculate immediate z position using dx partial of z
@@ -618,6 +641,8 @@ def draw_poly(poly, color, polyhedron):
 
 						if shading_model_state == 1:
 							final_color_values = current_i
+						elif shading_model_state == 2:
+							final_color_values = get_lit_color(polyhedron.base_color, current_n)
 
 						# Build color string
 						# print(final_color_values)
@@ -636,6 +661,8 @@ def draw_poly(poly, color, polyhedron):
 					current_z += z_partial_x
 					if shading_model_state == 1:
 						current_i = vector_add(current_i, i_partial_x)
+					elif shading_model_state == 2:
+						current_n = vector_add(current_n, n_partial_x)
 
 			popped = False
 			# Check and update leftmost edge
@@ -667,6 +694,9 @@ def draw_poly(poly, color, polyhedron):
 			if shading_model_state == 1:
 				first_edge_i = vector_add(first_edge_i, start_edge.di)
 				end_edge_i = vector_add(end_edge_i, end_edge.di)
+			elif shading_model_state == 2:
+				first_edge_n = vector_add(first_edge_n, start_edge.dn)
+				end_edge_n = vector_add(end_edge_n, end_edge.dn)
 
 			if DEBUG:
 				print('First edge x changed by {} to {}. End edge x changed by {} to {}.\n'
@@ -804,7 +834,7 @@ objects = [
 current_object_index = 0
 pixel_drawing_canvas = None
 z_buffer = None  # initialize for global use
-ambient_light_intensity = [0.1, 0.1, 0.1]
+ambient_light_intensity = [0.3, 0.3, 0.3]
 light_sources = [PointLightSource([1.0, 1.0, -1.0], [1.0, 1.0, 1.0])]
 
 # **************************************************************************
