@@ -124,10 +124,9 @@ class Polyhedron:
 		for poly in self.polygons:
 			poly.refresh_normal()
 		for poly in self.polygons:
-
 			# Filter visible faces with backface culling
 			if not cull_backface or poly.draw:
-				draw_poly(poly, edge_color, poly.unit_normal, self)
+				draw_poly(poly, edge_color, self)
 
 
 # Implementation of the Polyhedron superclass that models the pyramid as it was in assignment 1
@@ -326,17 +325,17 @@ class Tube(Polyhedron):
 		for i in range(face_count):
 			# add left and right faces as neighbours
 			current_outer_face = outer_tube[i]
-			left_outer_face = outer_tube[(i - 1) % face_count]
-			right_outer_face = outer_tube[(i + 1) % face_count]
-			current_outer_face.add_neighbour(left_outer_face)
-			current_outer_face.add_neighbour(left_outer_face)
+			left_outer_face = outer_tube[(i + 1) % face_count]
+			right_outer_face = outer_tube[(i - 1) % face_count]
 			current_outer_face.add_neighbour(right_outer_face)
 			current_outer_face.add_neighbour(right_outer_face)
+			current_outer_face.add_neighbour(left_outer_face)
+			current_outer_face.add_neighbour(left_outer_face)
 
 			# do the same for the inner faces
 			current_inner_face = inner_tube[i]
-			left_inner_face = outer_tube[(i - 1) % face_count]
-			right_inner_face = outer_tube[(i + 1) % face_count]
+			left_inner_face = inner_tube[(i + 1) % face_count]
+			right_inner_face = inner_tube[(i - 1) % face_count]
 			current_inner_face.add_neighbour(left_inner_face)
 			current_inner_face.add_neighbour(left_inner_face)
 			current_inner_face.add_neighbour(right_inner_face)
@@ -377,6 +376,13 @@ class Edge(object):
 	def __init__(self, p1, p2):
 		self.start = min(p1, p2, key=lambda point: point[1])
 		self.end = p2 if (p1 is self.start) else p1
+
+	def set_vertex_normals(self, v1, v2, color):
+
+		self.v1 = v1
+		self.v2 = v2
+		self.i1 = get_lit_color(color, v1)
+		self.i2 = get_lit_color(color, v2)
 
 	@property
 	def x_start(self):
@@ -435,6 +441,19 @@ class Edge(object):
 
 			return 0
 
+	# LIGHTING DELTAS
+
+	# dr/dy
+	@property
+	def di(self):
+		try:
+
+			return list(map(lambda i: i / (self.y_end - self.y_start), vector_subtract(self.i2, self.i1)))
+
+		except ZeroDivisionError:
+
+			return [0.0, 0.0, 0.0]
+
 	def __str__(self):
 		return "Edge starting at " + str(self.start) + " and ending at " + str(self.end) + ".\n" \
 																			"Slope is " + str(self.slope) + "\n"\
@@ -492,7 +511,7 @@ def draw_objects(scene_objects):
 
 # This function will draw a polygon by repeatedly calling drawLine on each pair of points
 # making up the object.  Remember to draw a line between the last point and the first.
-def draw_poly(poly, color, unit_normal, polyhedron):
+def draw_poly(poly, color, polyhedron):
 
 	global z_buffer
 	edge_table = []
@@ -501,20 +520,27 @@ def draw_poly(poly, color, unit_normal, polyhedron):
 	# Only fill if polygon filling is enabled
 	if polygon_draw_mode < 2:
 
+		# calculate color for polygon here if lambert shading is active
+		if shading_model_state == 0:
+			final_color_values = get_lit_color(polyhedron.base_color, poly.unit_normal)
+
 		# Generate all of the edges in the polygon
 		if DEBUG:
 			print('Drawing polygon with {} points.'.format(points))
 		for point in range(points):
+			next_i = (point + 1) % points
 			edge = generate_projected_edge(poly[point], poly[(point + 1) % points])
+			if shading_model_state > 0:
+				# calculate vertex normals
+				# TODO maybe update for other polyhedrons
+				vertex_normal1 = normalize_vector(vector_add(poly.unit_normal, poly.neighbours[point].unit_normal))
+				vertex_normal2 = normalize_vector(vector_add(poly.unit_normal, poly.neighbours[next_i].unit_normal))
+				edge.set_vertex_normals(vertex_normal1, vertex_normal2, polyhedron.base_color)
 			# Ignore horizontal edges
 			if edge.slope != 0:
 				if DEBUG:
 					print('Edge added')
 				edge_table.append(edge)
-
-		# calculate color for polygon here if lambert shading is active
-		if shading_model_state == 0:
-			final_color_values = get_lit_color(polyhedron.base_color, unit_normal)
 
 		# sort edges by y value
 		edge_table.sort(key=lambda edge_obj: edge_obj.y_start)
@@ -547,6 +573,10 @@ def draw_poly(poly, color, unit_normal, polyhedron):
 		first_edge_x = start_edge.x_start
 		end_edge_x = end_edge.x_start
 
+		if shading_model_state == 1:
+			first_edge_i = start_edge.i1
+			end_edge_i = end_edge.i1
+
 		# same offset but for dz/dy
 		first_edge_z = start_edge.z_start
 		end_edge_z = end_edge.z_start
@@ -560,12 +590,23 @@ def draw_poly(poly, color, unit_normal, polyhedron):
 			else:
 				start_value = int(first_edge_x)
 				end_value = int(end_edge_x)
+				if shading_model_state == 1:
+					start_intensity = start_edge.i1
+					end_intensity = end_edge.i2
 				# calculate the change in z over the horizontal line
 				try:
-					z_partial_x = (end_edge_z - first_edge_z) / float(end_value - start_value)
+					dx = float(end_value - start_value)
+					z_partial_x = (end_edge_z - first_edge_z) / dx
+					if shading_model_state == 1:
+						i_partial_x = list(map(lambda i: i / dx, vector_subtract(end_intensity, start_intensity)))
 				except ZeroDivisionError:
 					z_partial_x = 0
+					if shading_model_state == 1:
+						print('yep')
+						i_partial_x = [255, 255, 255]
 				current_z = first_edge_z
+				if shading_model_state == 1:
+					current_i = start_intensity
 				# fill the polygon on the current scan line
 				for x in range(start_value, end_value):
 					# calculate immediate z position using dx partial of z
@@ -575,13 +616,10 @@ def draw_poly(poly, color, unit_normal, polyhedron):
 					# if buffer slot is empty or the current object dot is closer (-z) or z-buffering is disabled
 					if z_buffer[x][scan_y] is None or current_z < z_buffer[x][scan_y] or not z_buffering:
 						z_buffer[x][scan_y] = current_z
-						# Get an integer between 0 and 255 for the color at a particular pixel
-						gradient_value = int((x/end_value * 255) * math.sqrt((end_value - x)/end_value))
-						# Get the base 16 string for the integer value
-						gradient_hex = hex(gradient_value)
-						# Cuts off the '0x' that the hex string starts with
-						gradient = str(gradient_hex)[2::]
-						
+
+						if shading_model_state == 1:
+							final_color_values = current_i
+
 						# Build color string
 						# print(final_color_values)
 						color_value_strings = list(
@@ -597,6 +635,8 @@ def draw_poly(poly, color, unit_normal, polyhedron):
 						if x >= 0 and scan_y >= 0:
 							pixel_drawing_canvas.put(color_string, (x, scan_y))
 					current_z += z_partial_x
+					if shading_model_state == 1:
+						current_i = vector_add(current_i, i_partial_x)
 
 			popped = False
 			# Check and update leftmost edge
@@ -624,6 +664,10 @@ def draw_poly(poly, color, unit_normal, polyhedron):
 			# Increment the z-values
 			first_edge_z += start_edge.dz
 			end_edge_z += end_edge.dz
+
+			if shading_model_state == 1:
+				first_edge_i = vector_add(first_edge_i, start_edge.di)
+				end_edge_i = vector_add(end_edge_i, end_edge.di)
 
 			if DEBUG:
 				print('First edge x changed by {} to {}. End edge x changed by {} to {}.\n'
@@ -696,6 +740,11 @@ def vector_subtract(minuend, subtrahend):
 	# This will throw an error if the two vectors are of varying lengths
 	assert len(minuend) == len(subtrahend)
 	return [minuend[i] - subtrahend[i] for i in range(len(minuend))]
+
+
+def vector_add(addend1, addend2):
+	assert len(addend1) == len(addend2)
+	return list(map(lambda i, j: i + j, addend1, addend2))
 
 
 # Calculates the unit surface normal of a plane defined by two lines
@@ -934,7 +983,7 @@ def rotate_lighting_model(event):
 
 def toggle_shading_model(event):
 	global shading_model_state
-	shading_model_state = (shading_model_state + 1) % 3
+	shading_model_state = (shading_model_state + 1) % 2
 	print("Toggled shading model to " +
 		  ["faceted shading",
 		   "Goraud shading",
