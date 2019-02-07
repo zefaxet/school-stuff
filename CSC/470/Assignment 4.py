@@ -10,6 +10,7 @@
 import math
 from tkinter import *
 from statistics import mean
+from copy import deepcopy
 
 DEBUG = False
 DRAW_DEBUG = 0  # 0 is off, 1 draws scan line bounds, -1 fills polygons with lines
@@ -32,14 +33,14 @@ shading_model_state = 0
 # for any object that we draw on the canvas.
 class Polyhedron:
 	def __init__(self, centered_shape, point_cloud, initial_pos,
-				color_string_lambda=lambda i: "#{}{}{}".format(i, i, i)):
+				 base_color=deepcopy([0,0,0]), reflection_color=deepcopy([0,0,0])):
 
 		self.offset = initial_pos
 		self.polygons = centered_shape
 		self.point_cloud = point_cloud
 		self.translate(initial_pos)
-		# Defines a function that will produce a RGB hex string to generate gradients with
-		self.color_string_lambda = color_string_lambda
+		self.base_color=base_color
+		self.reflection_color = reflection_color
 
 	# This function performs a simple uniform scale of an object assuming the object is
 	# centered at the origin.  The scalefactor is a scalar.
@@ -124,7 +125,7 @@ class Polyhedron:
 			# Filter visible faces with backface culling
 			draw, unit_normal = should_draw_polygon(poly)
 			if not cull_backface or draw:
-				draw_poly(poly, edge_color, self.color_string_lambda, unit_normal)
+				draw_poly(poly, edge_color, unit_normal, self)
 
 
 # Implementation of the Polyhedron superclass that models the pyramid as it was in assignment 1
@@ -426,7 +427,7 @@ class PointLightSource(object):
 # ************************************************************************************
 # Program globals
 objects = [
-	Tube([0, 0, 0], lambda i: [0x00, 0x00, 0xBB], lambda i: [0xBB, 0x00, 0x00])
+	Tube([0, 0, 0], [0x00, 0x00, 0xBB], [0xBB, 0x00, 0x00])
 	# Pyramid([0, 0, 0], lambda i: "#{}00{}".format(i, str(hex(0xFF - int("0x" + i, 16)))[2::])),  # red pyramid
 	# Pyramid([100, 300, 500], lambda i: "#00{}00".format(i)),  # green pyramid
 	# Cube([200, -100, 200], lambda i: "#0000{}".format(i)),  # blue cube
@@ -436,8 +437,8 @@ objects = [
 current_object_index = 0
 pixel_drawing_canvas = None
 z_buffer = None  # initialize for global use
-ambient_light_intensity = [0.3, 0.3, 0.3]
-light_sources = [PointLightSource([1.0, 1.0, -1.0], [255, 255, 255])]
+ambient_light_intensity = [0.1, 0.1, 0.1]
+light_sources = [PointLightSource([1.0, 1.0, -1.0], [1.0, 1.0, 1.0])]
 
 
 # Determines whether or not a polygon should be subject to backface culling
@@ -480,7 +481,7 @@ def draw_objects(scene_objects):
 
 # This function will draw a polygon by repeatedly calling drawLine on each pair of points
 # making up the object.  Remember to draw a line between the last point and the first.
-def draw_poly(poly, color, fill_color_lambda, unit_normal):
+def draw_poly(poly, color, unit_normal, polyhedron):
 
 	global z_buffer
 	edge_table = []
@@ -499,6 +500,10 @@ def draw_poly(poly, color, fill_color_lambda, unit_normal):
 				if DEBUG:
 					print('Edge added')
 				edge_table.append(edge)
+
+		# calculate color for polygon here if lambert shading is active
+		if shading_model_state == 0:
+			final_color_values = get_lit_color(polyhedron.base_color, unit_normal)
 
 		# sort edges by y value
 		edge_table.sort(key=lambda edge_obj: edge_obj.y_start)
@@ -565,32 +570,27 @@ def draw_poly(poly, color, fill_color_lambda, unit_normal):
 						gradient_hex = hex(gradient_value)
 						# Cuts off the '0x' that the hex string starts with
 						gradient = str(gradient_hex)[2::]
-						# Ensures each color is 2 digits at least
-						if len(gradient) == 1:
-							gradient = '0' + gradient
-						# Generate the color for the pixel using the object's fill color lambda
-						# This list contains integers
-						object_color_values = fill_color_lambda(gradient)
-						# apply Ambient diffuse lighting
-						ambient_color_values = list(map(lambda k, i: k * i, object_color_values, ambient_light_intensity))
-						# apply point diffuse and point specular lighting conditionally
-						for source in light_sources:
-							# if point diffuse is enabled
-							if lighting_model_state > 0:
-								source_vector_normal = normalize_vector(source.position)
-								cos_fi = vector_dot(unit_normal, source_vector_normal)
-								for color in range(len(ambient_color_values)):
-									i = source.color[color]
-									k = object_color_values[color]
-									# TODO why negatives?
-									ambient_color_values[i] =
-						print(ambient_color_values)
+
+						# ambient_color_values = list(map(lambda k, i: k * i, object_color_values, ambient_light_intensity))
+						# # apply point diffuse and point specular lighting conditionally
+						# for source in light_sources:
+						# 	# if point diffuse is enabled
+						# 	if lighting_model_state > 0:
+						# 		source_vector_normal = normalize_vector(source.position)
+						# 		cos_fi = vector_dot(unit_normal, source_vector_normal)
+						# 		for color in range(len(ambient_color_values)):
+						# 			i = source.color[color]
+						# 			k = object_color_values[color]
+						# 			# TODO why negatives?
+						# 			ambient_color_values[i] =
+						# print(ambient_color_values)
 						# Build color string
+						# print(final_color_values)
 						color_value_strings = list(
 							map(
 								lambda i: '00' if len(i) == 0 else (('0' + i) if len(i) == 1 else i),
 								map(
-									lambda i: str(hex(int(i)))[2::], ambient_color_values
+									lambda i: str(hex(int(i)))[2::], final_color_values
 								)
 							)
 						)
@@ -717,6 +717,7 @@ def normalize_vector(vector):
 
 	return list(map(lambda i: i / magnitude, vector))
 
+
 # Calculates the dot product of two vectors in any dimension
 def vector_dot(v1, v2):
 	# Ensure the two vectors are the same lengths
@@ -727,6 +728,24 @@ def vector_dot(v1, v2):
 
 	return product
 
+
+def get_lit_color(base_color, normal):
+
+	# start with the ambient component
+	final_lighting = map(lambda k, i: k * i, base_color, ambient_light_intensity)
+
+	# calculate point diffuse component when applicable
+	if lighting_model_state > 0:
+		# TODO using the color of the source for intensity, have the intensity decrease using exp() as object moves away?
+		for source in light_sources:
+			point_intensity = source.color
+			position = normalize_vector(source.position)
+			for i in range(len(base_color)):
+				print(point_intensity[i], base_color[i], vector_dot(normal, position))
+			point_diffuse_component = map(lambda i, k: i * 255 * vector_dot(normal, position), point_intensity, base_color)
+			final_lighting = map(lambda a, b: a + b, final_lighting, point_diffuse_component)
+
+	return list(map(lambda i: max(min(255.0, i), 0), final_lighting))
 
 # **************************************************************************
 # Everything below this point implements the interface
