@@ -8,10 +8,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-const char EXIT[4] = "exit";
+const char EXIT[5] = "exit";
 const char PWD[3] = "pwd";
-const char CD[2] = "cd";
-const char * DELIM = " \n\r\t";
+const char CD[3] = "cd";
+const char SET[4] = "set";
+const char * DELIM = " |\n\r\t";
 
 int stdin_fd, stdout_fd, infd, outfd;
 
@@ -24,14 +25,25 @@ char * args[32];
 pid_t child, c;
 int cstatus;
 
+//error handling with strerr(errno)
 extern int errno;
 
-//error handling with strerr(errno)
+void trim_trailing_whitespace(char * str)
+{
+
+	int len = strlen(str);
+	while(isspace(str[len - 1])) len--;
+	char * stripped = malloc(sizeof(char) * len);
+	stripped = strncpy(stripped, str, len);
+	str = stripped;	
+
+}
+
 
 int main()
 {
 
-	printf("Tech Shell - CSC 222 Version\nBy Edward Auttonberry\nFall 2018\n");
+	printf("Tech Shell - CSC 345 Version\nBy Edward Auttonberry\nWinter 2018\n");
 
 	stdin_fd = dup(0);
 	stdout_fd = dup(1);
@@ -89,13 +101,14 @@ int main()
 			*inref = (char *) NULL;
 
 		}
-		//		
+		//REDIRECTION~		
 
 		token = strtok(in, DELIM);
+		trim_trailing_whitespace(token);
 		
 		if (token != NULL)
 		{
-			if(!strncmp(token, EXIT, sizeof(EXIT)))
+			if(!strcmp(token, EXIT))
 			{
 				
 				token = strtok(NULL, DELIM);
@@ -116,15 +129,21 @@ int main()
 					exit(-1);
 				}
 			}
-			else if(!strncmp(token, PWD, sizeof(PWD)))
+			else if(!strcmp(token, PWD))
 			{
 				printf("%s\n",cwd);
 				continue;
 			}
-			else if(!strncmp(token, CD, sizeof(CD)))
+			else if(!strcmp(token, CD))
 			{
 				token = strtok(NULL, DELIM);
 				chdir(token);
+				continue;
+			}
+			else if(!strcmp(token, SET))
+			{
+				token = strtok(NULL, DELIM);
+				puts(token);
 				continue;
 			}
 			else
