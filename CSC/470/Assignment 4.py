@@ -602,8 +602,7 @@ def draw_poly(poly, color, polyhedron):
 				except ZeroDivisionError:
 					z_partial_x = 0
 					if shading_model_state == 1:
-						print('yep')
-						i_partial_x = [255, 255, 255]
+						i_partial_x = [0, 0, 0]
 				current_z = first_edge_z
 				if shading_model_state == 1:
 					current_i = start_intensity
@@ -983,7 +982,7 @@ def rotate_lighting_model(event):
 
 def toggle_shading_model(event):
 	global shading_model_state
-	shading_model_state = (shading_model_state + 1) % 2
+	shading_model_state = (shading_model_state + 1) % 3
 	print("Toggled shading model to " +
 		  ["faceted shading",
 		   "Goraud shading",
