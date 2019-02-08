@@ -79,7 +79,7 @@ int main()
 				continue;
 			}
 
-			*outref = (char *) NULL;
+			outref = (char *) NULL;
 
 		}
 		if((inref = strstr(in,"<")))
@@ -98,7 +98,7 @@ int main()
 				continue;
 			}
 
-			*inref = (char *) NULL;
+			inref = (char *) NULL;
 
 		}
 		//REDIRECTION~		
