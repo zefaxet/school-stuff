@@ -28,4 +28,5 @@ int main()
 	fgets(in, 5, stdin);
 	printf("%s,%s\n", in, exit);
 	printf("%d\n", strcmp(in, exit));
+	puts(NULL);
 }

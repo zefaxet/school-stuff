@@ -143,7 +143,29 @@ int main()
 			else if(!strcmp(token, SET))
 			{
 				token = strtok(NULL, DELIM);
-				puts(token);
+				if (token)
+				{
+					char * identifier = token;
+					token = strtok(NULL, "\n");
+					if (token)
+					{
+						char * value = token;
+						puts(value);
+						goto set_success;
+					}
+					else
+					{
+						goto set_error;
+					}
+				}
+				else
+				{
+					goto set_error;
+				}
+				
+				set_error:
+				puts("Invalid usage: set <name> <value>");
+				set_success:
 				continue;
 			}
 			else
