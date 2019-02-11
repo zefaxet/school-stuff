@@ -1,5 +1,5 @@
 all:
-	gcc -o tsh tsh.c -g
+	gcc -o tsh tsh.c strmap.c -g -I .
 	./tsh
 
 g:

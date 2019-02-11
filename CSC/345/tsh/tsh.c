@@ -7,11 +7,13 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <strmap.h>
 
 const char EXIT[5] = "exit";
 const char PWD[3] = "pwd";
 const char CD[3] = "cd";
 const char SET[4] = "set";
+const char LIST[5] = "list";
 const char * DELIM = " |\n\r\t";
 
 int stdin_fd, stdout_fd, infd, outfd;
@@ -24,6 +26,8 @@ char * args[32];
 
 pid_t child, c;
 int cstatus;
+
+StrMap * symbol_table;
 
 //error handling with strerr(errno)
 extern int errno;
@@ -47,6 +51,8 @@ int main()
 
 	stdin_fd = dup(0);
 	stdout_fd = dup(1);
+
+	symbol_table = sm_new(1024);
 	
 	while(1)
 	{
@@ -150,7 +156,7 @@ int main()
 					if (token)
 					{
 						char * value = token;
-						puts(value);
+						sm_put(symbol_table, identifier, value);
 						goto set_success;
 					}
 					else
@@ -167,6 +173,14 @@ int main()
 				puts("Invalid usage: set <name> <value>");
 				set_success:
 				continue;
+			}
+			else if(!strcmp(token, LIST))
+			{
+				void lambda(char * key, char * value, void * obj)
+				{
+					printf("%s: %s");
+				}
+				sm_enum(sm, lambda, NULL); 
 			}
 			else
 			{
