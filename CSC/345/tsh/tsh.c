@@ -43,16 +43,25 @@ void trim_trailing_whitespace(char * str)
 
 }
 
+void lambda(char * key, char * value, void * obj)
+{
+	printf("%s: %s\n", key, value);
+}
+
+void parse(char * args, int stdin_fd)
+{
+	
+}
 
 int main()
 {
 
 	printf("Tech Shell - CSC 345 Version\nBy Edward Auttonberry\nWinter 2018\n");
 
+	symbol_table = sm_new(1024);
+
 	stdin_fd = dup(0);
 	stdout_fd = dup(1);
-
-	symbol_table = sm_new(1024);
 	
 	while(1)
 	{
@@ -61,7 +70,8 @@ int main()
 		dup2(stdout_fd,1); //reset stdio
 		infd = 0;
 		outfd = 1;
-
+		
+		//clear args
 		memset(args, 0, sizeof(args));
 
 		getcwd(cwd, sizeof(cwd));
@@ -74,7 +84,7 @@ int main()
 		char * fileref;
 
 		//REDIRECTION
-		if((outref = strstr(in,">")))
+		if((outref = strstr(in, ">")))
 		{
 			
 			fileref = strtok(outref + 1, DELIM);
@@ -85,10 +95,10 @@ int main()
 				continue;
 			}
 
-			outref = (char *) NULL;
+			*outref = (char) NULL;
 
 		}
-		if((inref = strstr(in,"<")))
+		if((inref = strstr(in, "<")))
 		{
 
 			fileref = strtok(inref + 1, DELIM);
@@ -104,7 +114,7 @@ int main()
 				continue;
 			}
 
-			inref = (char *) NULL;
+			*inref = (char) NULL;
 
 		}
 		//REDIRECTION~		
@@ -176,11 +186,8 @@ int main()
 			}
 			else if(!strcmp(token, LIST))
 			{
-				void lambda(char * key, char * value, void * obj)
-				{
-					printf("%s: %s");
-				}
-				sm_enum(sm, lambda, NULL); 
+				
+				sm_enum(symbol_table, (sm_enum_func) lambda, NULL); 
 			}
 			else
 			{
@@ -189,7 +196,7 @@ int main()
 
 				do
 				{
-
+					
 					args[i++] = token;	
 
 				}
