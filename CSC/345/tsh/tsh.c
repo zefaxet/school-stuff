@@ -51,10 +51,15 @@ void lambda(char * key, char * value, void * obj)
 void parse(char * in, int stdin_fd)
 {
 	
+	//PIPING
+	
+	char * pipe_target = strdup(in);
+	in = strsep(&pipe_target, "|");
+	
 	char * outref;
 	char * inref;
 	char * fileref;
-
+	
 	//REDIRECTION
 	if((outref = strstr(in, ">")))
 	{
