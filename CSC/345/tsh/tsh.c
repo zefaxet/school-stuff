@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -53,11 +54,18 @@ void parse(char * in, int stdin_fd)
 	
 	//PIPING
 	
+	bool pipe_flag = false;
 	char * pipe_target = strdup(in);
 	in = strsep(&pipe_target, "|");
 	if (pipe_target)
 	{
-		puts(pipe_target);
+		pipe_flag = true;
+		int pipe_fd[2];
+		pipe(pipe_fd);
+		if (dup2(pipe_fd[1], 1) < 0)
+		{
+			perror("Failed to pipe stdout.");
+		}
 	}
 	
 	char * outref;
@@ -72,7 +80,7 @@ void parse(char * in, int stdin_fd)
 		outfd = open(fileref, O_TRUNC | O_WRONLY | O_CREAT); 
 		if (dup2(outfd, 1) < 0)
 		{
-			perror("Failed to duplicate stdout.");
+			perror("Failed to duplicate stdout to file.");
 			return;
 		}
 
