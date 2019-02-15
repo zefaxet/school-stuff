@@ -55,6 +55,10 @@ void parse(char * in, int stdin_fd)
 	
 	char * pipe_target = strdup(in);
 	in = strsep(&pipe_target, "|");
+	if (pipe_target)
+	{
+		puts(pipe_target);
+	}
 	
 	char * outref;
 	char * inref;

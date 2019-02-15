@@ -11,6 +11,11 @@ int main()
 	test = strsep(&next, ",");
 	// puts(tok);
 	puts(test);
-	puts(next);
+	printf(next);
+	printf("\ntest\n");
+	if(next == NULL)
+	{
+		puts("testt");
+	}
 	
 }
