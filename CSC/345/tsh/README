@@ -1,0 +1,43 @@
+Tech Schell 2.0 By Edward Auttonberry
+Created for CSC 345 with Dr. Box
+
+Everything works up to the specifications of the assignment document
+Do not press TAB or any arrow keys because I don't capture those and its just gonna make the command line get funky
+
+Use default make task to compile all sources
+
+Tech schell sources (tsh.c) were written wholly by me. Certain portions of this assignment are leftovers from Tech Shell 1.0 completed for CSC 222.
+
+The source files strmap.c and strmap.h are licensed under the GNU LGPL and borrowed from the internet. I do not make claim to these sources.
+The source for these files can be found at http://www.pokristensson.com/strmap.html
+
+------------------ USING tsh -------------------
+--- all commands are case sensitive
+------------------------------------------------
+
+set <id> <value> -- sets a variable and its value
+	set example example
+	set var_a 123
+	set foo bar
+
+list -- displays all shell variables and their values
+	The above sets would result in the following output
+	example: example
+	var_a: 123
+	foo: bar
+
+PIPING
+	<command> | <command> [| <command ...] : directs output of leftside command to stdin for next command
+		echo test | grep t | wc
+
+--- the following are left over from Tech Shell 1.0
+
+pwd -- display current working directory
+cd <dir> -- change directory
+exit <status> -- exit shell with status code, defaulting to 0
+
+IO REDIRECTION
+	<command> > <file> : directs from stdout to a file
+		echo foo > example
+	<command> < <file>: directs from file to stdin
+		cat < example

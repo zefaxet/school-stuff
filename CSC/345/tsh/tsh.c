@@ -49,19 +49,26 @@ void lambda(char * key, char * value, void * obj)
 	printf("%s: %s\n", key, value);
 }
 
-void parse(char * in, int stdin_fd)
+void parse(char * in, int local_stdin_fd)
 {
+	
+	//assume this is the terminal command in a pipe chain, reset stdout
+	dup2(stdout_fd, 1);
+	
+	//set stdin to the fd passed in
+	dup2(local_stdin_fd, 0);
 	
 	//PIPING
 	
 	bool pipe_flag = false;
 	char * pipe_target = strdup(in);
 	in = strsep(&pipe_target, "|");
+	int pipe_fd[2];
 	if (pipe_target)
 	{
 		pipe_flag = true;
-		int pipe_fd[2];
 		pipe(pipe_fd);
+		//dup stdout into the pipe
 		if (dup2(pipe_fd[1], 1) < 0)
 		{
 			perror("Failed to pipe stdout.");
@@ -215,6 +222,13 @@ void parse(char * in, int stdin_fd)
 				}
 			}
 
+		}
+		
+		if (pipe_flag)
+		{
+			close(pipe_fd[1]);
+			parse(pipe_target, pipe_fd[0]);
+			
 		}
 
 	}
