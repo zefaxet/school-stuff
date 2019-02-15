@@ -1,6 +1,6 @@
 all:
-	gcc -o tsh tsh.c strmap.c -g -I .
-	./tsh
+	gcc -o techShell tsh.c strmap.c -g -I .
+	./techShell
 
 g:
 	gcc -o tsh tsh.c strmap.c -g -I .
