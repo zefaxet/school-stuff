@@ -10,19 +10,19 @@ getcontext().prec = 28
 
 def render():
 
-	depth = 1  # maximum ray depth
+	depth = DEPTH  # maximum ray depth
 	# setup_drawing_canvas()
 
 	# center of projection
 	xs, ys, zs = Decimal(0.0), Decimal(0.0), Decimal(-800.0)
 
-	for pixel_x in range(1, 1201):
+	for pixel_x in range(1, WIDTH + 1):
 
-		screen_x = pixel_x - 600
+		screen_x = pixel_x - Decimal(WIDTH) / 2
 
-		for pixel_y in range(1, 1201):
+		for pixel_y in range(1, HEIGHT + 1):
 
-			screen_y = pixel_y - 600
+			screen_y = pixel_y - Decimal(HEIGHT) / 2
 
 			# compute vector for ray from center of projection through pixel
 			ray_i = screen_x - xs
@@ -172,12 +172,12 @@ def sphere1_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 						t: list, intersect_refs: list, normal_refs: list) -> bool:
 
 	# center of sphere
-	l = Decimal(0)
-	m = Decimal(-400)
-	n = Decimal(600)
+	l = Decimal(SPHERE1_POSITION[0])
+	m = Decimal(SPHERE1_POSITION[1])
+	n = Decimal(SPHERE1_POSITION[2])
 
 	# radius of sphere
-	r = Decimal(100)
+	r = Decimal(SPHERE1_RADIUS)
 
 	# compute intersection of ray with sphere
 	asphere = ray_x ** 2 + ray_y ** 2 + ray_z ** 2
@@ -251,6 +251,8 @@ def sphere1_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: D
 	ir = int(.7 * ir + .3 * 120)
 	ig = int(.7 * ig + .3 * 180)
 	ib = int(.7 * ib + .3 * 0)
+	
+	ir, ig, ib = get_lit_color([ir, ig, ib], [nx_norm, ny_norm, nz_norm])
 
 	return ir, ig, ib
 
@@ -259,12 +261,12 @@ def sphere2_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 						ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 						t: list, intersect_refs: list, normal_refs: list) -> bool:
 	# center of sphere
-	l = Decimal(-400)
-	m = Decimal(100)
-	n = Decimal(1000)
+	l = Decimal(SPHERE2_POSITION[0])
+	m = Decimal(SPHERE2_POSITION[1])
+	n = Decimal(SPHERE2_POSITION[2])
 
 	# radius of sphere
-	r = Decimal(250)
+	r = Decimal(SPHERE2_RADIUS)
 
 	# compute intersection of ray with sphere
 	asphere = ray_x ** 2 + ray_y ** 2 + ray_z ** 2
@@ -338,6 +340,8 @@ def sphere2_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: D
 	ir = int(.7 * ir + .3 * 200)
 	ig = int(.7 * ig + .3 * 100)
 	ib = int(.7 * ib + .3 * 100)
+	
+	ir, ig, ib = get_lit_color([ir, ig, ib], [nx_norm, ny_norm, nz_norm])
 
 	return ir, ig, ib
 
@@ -352,20 +356,61 @@ def put_pixel(pixel_x: int, pixel_y: int, ir: int, ig: int, ib: int):
 	ib = max(ib, 80)
 
 	color = "#{}{}{}".format(*list(map(lambda i: str(hex(i))[2::], [ir, ig, ib])))
-	surface.put(color, (pixel_x, 1200 - pixel_y))
+	surface.put(color, (pixel_x, HEIGHT - pixel_y))
+
+
+def get_lit_color(base_color, normal, specular_reflectivity=None):
+	
+	global LIGHT_SOURCE_POSITION
+	
+	ambient_component = map(lambda k, i: k * i, base_color, AMBIENT_INTENSITY)
+	
+	print("ambient component")
+	
+	point_intensity = LIGHT_SOURCE_COLOR
+	magnitude = LIGHT_SOURCE_POSITION[0] ** 2 + LIGHT_SOURCE_POSITION[1] ** 2 + LIGHT_SOURCE_POSITION[2] ** 2
+	print("mag")
+	magnitude = sqrt(magnitude)
+	print("norm")
+	light_position = list(map(lambda i: i / magnitude, LIGHT_SOURCE_POSITION))
+	print("pos")
+	
+	# assume normal is already normalized
+	cos_fi = normal[0] * Decimal(light_position[0]) + normal[1] * Decimal(light_position[1]) + normal[2] * Decimal(light_position[2])
+	print("dot")
+	diffuse_component = map(lambda i, k: max(Decimal(i) * Decimal(k) * cos_fi, 0), point_intensity, base_color)
+	print("diffuse")
+	
+	return list(map(lambda a, b: int(Decimal(a) + b), ambient_component, diffuse_component))
 
 
 # MAIN ########################################
+
+WIDTH = 600
+HEIGHT = 400
+
+DEPTH = 5
+
+SPHERE1_POSITION = [-20, 50, 0]
+SPHERE1_RADIUS = 50
+
+SPHERE2_POSITION = [100, 100, 110]
+SPHERE2_RADIUS = 100
+
+AMBIENT_INTENSITY = [0.7, 0.7, 0.7]
+LIGHT_SOURCE_COLOR = [1.0, 1.0, 1.0]
+LIGHT_SOURCE_POSITION = [1.0, 1.0, -1.0]
+
 root = Tk()
 
 outer_frame = Frame(root)
 outer_frame.pack()
 
-w = Canvas(outer_frame, width=1200, height=1200)
+w = Canvas(outer_frame, width=WIDTH, height=HEIGHT)
 w.pack()
 
-surface = PhotoImage(width=1200, height=1200)
-w.create_image((600, 600), image=surface)
+surface = PhotoImage(width=WIDTH, height=HEIGHT)
+w.create_image((int(WIDTH / 2), int(HEIGHT / 2)), image=surface)
 
 render_button = Button(outer_frame, text="Render", command=render)
 render_button.pack()
