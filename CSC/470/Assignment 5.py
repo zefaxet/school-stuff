@@ -824,7 +824,7 @@ def get_lit_color(base_color, normal, specular_reflectivity):
 				else:
 					reflection_vector = map(lambda n, l: -n + (l / (2*cos_fi)), normal, light_position)
 				cos_theta = vector_dot(view_vector, normalize_vector(list(reflection_vector)))
-				specular_component = map(lambda i, k: max(0,i * k * cos_theta ** n), point_intensity, specular_reflectivity)
+				specular_component = map(lambda i, k: max(i * k * cos_theta ** n, 0), point_intensity, specular_reflectivity)
 				final_lighting = list(map(lambda a, b: a + b, final_lighting, specular_component))
 				# print(final_lighting)
 
