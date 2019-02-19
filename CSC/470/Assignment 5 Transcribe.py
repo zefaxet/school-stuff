@@ -86,6 +86,7 @@ def trace_ray(flag: int, level: int,
 		obj_normal_z = normal_refs[2]
 
 		if object_code == 0:
+			# todo modify function call to take reflection depth and a ray direction for reflections
 			ir, ig, ib = checkerboard_point_intensity(intersect_x, intersect_y, intersect_z)
 		elif object_code == 1:
 			ir, ig, ib = sphere1_point_intensity(level, ray_i, ray_j, ray_k,
@@ -359,31 +360,22 @@ def put_pixel(pixel_x: int, pixel_y: int, ir: int, ig: int, ib: int):
 	surface.put(color, (pixel_x, HEIGHT - pixel_y))
 
 
-def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(0.7), Decimal(0.1), Decimal(1)]):
+def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(1), Decimal(1), Decimal(1)]):
 	
 	global LIGHT_SOURCE_POSITION
 	
 	ambient_component = map(lambda k, i: k * i, base_color, AMBIENT_INTENSITY)
 	
-	print("ambient component")
-	
 	point_intensity = LIGHT_SOURCE_COLOR
 	magnitude = LIGHT_SOURCE_POSITION[0] ** 2 + LIGHT_SOURCE_POSITION[1] ** 2 + LIGHT_SOURCE_POSITION[2] ** 2
-	print("mag")
 	magnitude = sqrt(magnitude)
-	print("norm")
-	light_position = list(map(lambda i: Decimal(i / magnitude), LIGHT_SOURCE_POSITION))
-	print("pos")
+	light_position = list(map(lambda i: Decimal(-i / magnitude), LIGHT_SOURCE_POSITION))
 	
 	# assume normal is already normalized
 	cos_fi = normal[0] * light_position[0] + normal[1] * light_position[1] + normal[2] * light_position[2]
-	print("dot")
 	diffuse_component = map(lambda i, k: max(Decimal(i) * Decimal(k) * cos_fi, 0), point_intensity, base_color)
-	print("diffuse")
 	
 	zero = Decimal(0)
-	
-	print("Zero")
 	
 	if cos_fi == zero:
 		reflection_vector = map(lambda l: l * -1, light_position)
@@ -391,21 +383,16 @@ def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(0.7), Decim
 		reflection_vector = map(lambda n, l: n - (l / (2*cos_fi)), normal, light_position)
 	else:
 		reflection_vector = map(lambda n, l: (n * -1) + (l / (2*cos_fi)), normal, light_position)
-		
-	print("reflection")
 	
 	reflection_vector = list(reflection_vector)
 	magnitude = reflection_vector[0] ** 2 + reflection_vector[1] ** 2 + reflection_vector[2] ** 2
-	print("mag")
 	magnitude = magnitude.sqrt()
-	print("sqrt")
 	reflection_vector = list(map(lambda i: i / magnitude, reflection_vector))
-	print(type(reflection_vector[0]))
-	print("norm")
 	cos_theta = VIEW_VECTOR[0] * reflection_vector[0] + VIEW_VECTOR[1] * reflection_vector[1] + VIEW_VECTOR[2] * reflection_vector[2]
-	print("cos")
-	specular_component = map(lambda i, k: max(Decimal(i) * k * cos_theta, 0) ** SPECULAR_N, point_intensity, specular_reflectivity)
-	print("specular")
+	specular_component = map(lambda i, k: 255 * (max(Decimal(i) * k * cos_theta, 0) ** SPECULAR_N), point_intensity, specular_reflectivity)
+
+	specular_component = list(specular_component)
+	print(specular_component)
 	
 	return list(map(lambda a, b, c: int(Decimal(a) + b + c), ambient_component, diffuse_component, specular_component))
 
@@ -417,10 +404,10 @@ HEIGHT = 400
 
 DEPTH = 3
 
-SPHERE1_POSITION = [-20, 50, 0]
+SPHERE1_POSITION = [-20, 0, 0]
 SPHERE1_RADIUS = 50
 
-SPHERE2_POSITION = [100, 100, 110]
+SPHERE2_POSITION = [100, 0, 110]
 SPHERE2_RADIUS = 100
 
 AMBIENT_INTENSITY = [0.7, 0.7, 0.7]
@@ -428,7 +415,7 @@ LIGHT_SOURCE_COLOR = [1.0, 1.0, 1.0]
 LIGHT_SOURCE_POSITION = [1.0, 1.0, -1.0]
 
 VIEW_VECTOR = [Decimal(0), Decimal(0), Decimal(1)]
-SPECULAR_N = 1
+SPECULAR_N = Decimal(2)
 
 root = Tk()
 
