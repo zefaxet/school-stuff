@@ -359,7 +359,7 @@ def put_pixel(pixel_x: int, pixel_y: int, ir: int, ig: int, ib: int):
 	surface.put(color, (pixel_x, HEIGHT - pixel_y))
 
 
-def get_lit_color(base_color, normal, specular_reflectivity=None):
+def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(0.7), Decimal(0.1), Decimal(1)]):
 	
 	global LIGHT_SOURCE_POSITION
 	
@@ -372,16 +372,42 @@ def get_lit_color(base_color, normal, specular_reflectivity=None):
 	print("mag")
 	magnitude = sqrt(magnitude)
 	print("norm")
-	light_position = list(map(lambda i: i / magnitude, LIGHT_SOURCE_POSITION))
+	light_position = list(map(lambda i: Decimal(i / magnitude), LIGHT_SOURCE_POSITION))
 	print("pos")
 	
 	# assume normal is already normalized
-	cos_fi = normal[0] * Decimal(light_position[0]) + normal[1] * Decimal(light_position[1]) + normal[2] * Decimal(light_position[2])
+	cos_fi = normal[0] * light_position[0] + normal[1] * light_position[1] + normal[2] * light_position[2]
 	print("dot")
 	diffuse_component = map(lambda i, k: max(Decimal(i) * Decimal(k) * cos_fi, 0), point_intensity, base_color)
 	print("diffuse")
 	
-	return list(map(lambda a, b: int(Decimal(a) + b), ambient_component, diffuse_component))
+	zero = Decimal(0)
+	
+	print("Zero")
+	
+	if cos_fi == zero:
+		reflection_vector = map(lambda l: l * -1, light_position)
+	elif cos_fi > zero:
+		reflection_vector = map(lambda n, l: n - (l / (2*cos_fi)), normal, light_position)
+	else:
+		reflection_vector = map(lambda n, l: (n * -1) + (l / (2*cos_fi)), normal, light_position)
+		
+	print("reflection")
+	
+	reflection_vector = list(reflection_vector)
+	magnitude = reflection_vector[0] ** 2 + reflection_vector[1] ** 2 + reflection_vector[2] ** 2
+	print("mag")
+	magnitude = magnitude.sqrt()
+	print("sqrt")
+	reflection_vector = list(map(lambda i: i / magnitude, reflection_vector))
+	print(type(reflection_vector[0]))
+	print("norm")
+	cos_theta = VIEW_VECTOR[0] * reflection_vector[0] + VIEW_VECTOR[1] * reflection_vector[1] + VIEW_VECTOR[2] * reflection_vector[2]
+	print("cos")
+	specular_component = map(lambda i, k: max(Decimal(i) * k * cos_theta, 0) ** SPECULAR_N, point_intensity, specular_reflectivity)
+	print("specular")
+	
+	return list(map(lambda a, b, c: int(Decimal(a) + b + c), ambient_component, diffuse_component, specular_component))
 
 
 # MAIN ########################################
@@ -389,7 +415,7 @@ def get_lit_color(base_color, normal, specular_reflectivity=None):
 WIDTH = 600
 HEIGHT = 400
 
-DEPTH = 5
+DEPTH = 3
 
 SPHERE1_POSITION = [-20, 50, 0]
 SPHERE1_RADIUS = 50
@@ -400,6 +426,9 @@ SPHERE2_RADIUS = 100
 AMBIENT_INTENSITY = [0.7, 0.7, 0.7]
 LIGHT_SOURCE_COLOR = [1.0, 1.0, 1.0]
 LIGHT_SOURCE_POSITION = [1.0, 1.0, -1.0]
+
+VIEW_VECTOR = [Decimal(0), Decimal(0), Decimal(1)]
+SPECULAR_N = 1
 
 root = Tk()
 
