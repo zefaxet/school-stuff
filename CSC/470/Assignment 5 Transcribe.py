@@ -37,11 +37,11 @@ def render():
 
 def trace_ray(flag: int, level: int,
 			xs: Decimal, ys: Decimal, zs: Decimal,
-			ray_i: Decimal, ray_j: Decimal, ray_k: Decimal) -> [int, int, int]:
+			ray_i: Decimal, ray_j: Decimal, ray_k: Decimal, temp=None) -> [int, int, int]:
 
 	if level == 0:
 
-		print("Maximum depth exceeded - return black.")
+		# print("Maximum depth exceeded - return black.")
 		return 0, 0, 0
 
 	else:
@@ -87,7 +87,8 @@ def trace_ray(flag: int, level: int,
 
 		if object_code == 0:
 			# todo modify function call to take reflection depth and a ray direction for reflections
-			ir, ig, ib = checkerboard_point_intensity(intersect_x, intersect_y, intersect_z)
+			ir, ig, ib = checkerboard_point_intensity(level, ray_j, ray_j, ray_k,
+												intersect_x, intersect_y, intersect_z)
 		elif object_code == 1:
 			ir, ig, ib = sphere1_point_intensity(level, ray_i, ray_j, ray_k,
 												intersect_x, intersect_y, intersect_z,
@@ -95,7 +96,7 @@ def trace_ray(flag: int, level: int,
 		elif object_code == 2:
 			ir, ig, ib = sphere2_point_intensity(level, ray_i, ray_j, ray_k,
 												intersect_x, intersect_y, intersect_z,
-												obj_normal_x, obj_normal_y, obj_normal_z)
+												obj_normal_x, obj_normal_y, obj_normal_z, temp)
 		else:
 			# set pixel color to background color (light blue)
 			ir, ig, ib = 150, 150, 255
@@ -111,7 +112,7 @@ def checkerboard_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 	a, b, c = Decimal(0), Decimal(1), Decimal(0)
 
 	# point on plane
-	x1, y1, z1 = Decimal(0), Decimal(-500), Decimal(0)
+	x1, y1, z1 = BOARD_POSITION
 
 	# compute intersection of ray with plane
 	denom = a * ray_x + b * ray_y + c * ray_z
@@ -128,10 +129,12 @@ def checkerboard_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 		y = ys + ray_y * t_object
 		z = zs + ray_z * t_object
 		if z < 0 or z > 8000 or t_object < 0:
-			print("No visible intersection.")
+			# print("No visible intersection.")
+			pass
 			return False
 		elif t[0] < t_object:
-			print("Another object is closer")
+			pass
+			# print("Another object is closer")
 		else:
 			t[0] = t_object
 			intersect_refs[0] = x
@@ -140,11 +143,49 @@ def checkerboard_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 			return True
 
 
-def checkerboard_point_intensity(x, y, z):
+def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
+								 x: Decimal, y: Decimal, z: Decimal) -> tuple:
 
 	# a red and white checkered plane
+	
+	# normal of the incoming ray vector
+	magnitude = (ray_x ** 2 + ray_y ** 2 + ray_z ** 2).sqrt()
+	ray_x_norm = ray_x / magnitude
+	ray_y_norm = ray_y / magnitude
+	ray_z_norm = ray_z / magnitude
+	
+	nx, ny, nz = Decimal(0), Decimal(1), Decimal(0)
+	
+	magnitude = (nx ** 2 + ny ** 2 + nz ** 2).sqrt()
+	nx_norm = nx / magnitude
+	ny_norm = ny / magnitude
+	nz_norm = nz / magnitude
+	
+	# calculate reflection vector
+	cosine_phi = (-ray_x_norm * nx_norm) + (-ray_y_norm * ny_norm) + (-ray_z_norm * nz_norm)
+	
+	if cosine_phi > 0:
 
-	# compute color at intersection point
+		rx = nx_norm - (ray_x_norm) / (2 * cosine_phi)
+		ry = ny_norm - (ray_y_norm) / (2 * cosine_phi)
+		rz = nz_norm - (ray_z_norm) / (2 * cosine_phi)
+
+	elif cosine_phi == 0:
+
+		rx = -ray_x_norm
+		ry = -ray_y_norm
+		rz = -ray_z_norm
+
+	else:
+
+		rx = -nx_norm + (ray_x_norm) / (2 * cosine_phi)
+		ry = -ny_norm + (ray_y_norm) / (2 * cosine_phi)
+		rz = -nz_norm + (ray_z_norm) / (2 * cosine_phi)
+
+	# trace the reflection ray
+	ir, ig, ib = trace_ray(0, level - 1, x, y, z, rx, ry, rz, temp="plane")
+	
+	# compute local at intersection point
 	color_flag = 1 if x >= 0 else 0
 	if abs(fmod(x, 400.0)) > 200.0:
 		color_flag = not color_flag
@@ -154,17 +195,28 @@ def checkerboard_point_intensity(x, y, z):
 	if color_flag:
 
 		# red
-		ir = 255
-		ig = 0
-		ib = 0
+		ir_local = 255
+		ig_local = 0
+		ib_local = 0
 
 	else:
 
 		# white
-		ir = 255
-		ig = 255
-		ib = 255
-
+		ir_local = 255
+		ig_local = 255
+		ib_local = 255
+		
+	if [ir, ig, ib] == [0, 0, 0]:
+		
+		ir, ig, ib = ir_local, ig_local, ib_local
+		
+	else:
+		
+		# add effect of local color
+		ir = int(.3 * ir + .7 * ir_local)
+		ig = int(.3 * ig + .7 * ig_local)
+		ib = int(.3 * ib + .7 * ib_local)
+	 
 	return ir, ig, ib
 
 
@@ -249,8 +301,8 @@ def sphere1_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: D
 	ir, ig, ib = trace_ray(0, level - 1, x, y, z, rx, ry, rz)
 
 	# add effect of local color
-	ir = int(.7 * ir + .3 * 120)
-	ig = int(.7 * ig + .3 * 180)
+	ir = int(.7 * ir + .3 * 200)
+	ig = int(.7 * ig + .3 * 240)
 	ib = int(.7 * ib + .3 * 0)
 	
 	ir, ig, ib = get_lit_color([ir, ig, ib], [nx_norm, ny_norm, nz_norm])
@@ -261,6 +313,7 @@ def sphere1_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: D
 def sphere2_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 						ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 						t: list, intersect_refs: list, normal_refs: list) -> bool:
+	
 	# center of sphere
 	l = Decimal(SPHERE2_POSITION[0])
 	m = Decimal(SPHERE2_POSITION[1])
@@ -301,7 +354,8 @@ def sphere2_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 
 def sphere2_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 							x: Decimal, y: Decimal, z: Decimal,
-							nx: Decimal, ny: Decimal, nz: Decimal):
+							nx: Decimal, ny: Decimal, nz: Decimal, temp=None):
+	
 	magnitude = (ray_x ** 2 + ray_y ** 2 + ray_z ** 2).sqrt()
 	ray_x_norm = ray_x / magnitude
 	ray_y_norm = ray_y / magnitude
@@ -339,10 +393,12 @@ def sphere2_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: D
 
 	# add effect of local color
 	ir = int(.7 * ir + .3 * 200)
-	ig = int(.7 * ig + .3 * 100)
-	ib = int(.7 * ib + .3 * 100)
+	ig = int(.7 * ig + .3 * 16)
+	ib = int(.7 * ib + .3 * 16)
 	
 	ir, ig, ib = get_lit_color([ir, ig, ib], [nx_norm, ny_norm, nz_norm])
+	if temp is not None:
+		print(ir, ig, ib)
 
 	return ir, ig, ib
 
@@ -352,9 +408,9 @@ def put_pixel(pixel_x: int, pixel_y: int, ir: int, ig: int, ib: int):
 	ir = min(ir, 244)
 	ig = min(ig, 244)
 	ib = min(ib, 244)
-	ir = max(ir, 80)
-	ig = max(ig, 80)
-	ib = max(ib, 80)
+	ir = max(ir, 16)
+	ig = max(ig, 16)
+	ib = max(ib, 16)
 
 	color = "#{}{}{}".format(*list(map(lambda i: str(hex(i))[2::], [ir, ig, ib])))
 	surface.put(color, (pixel_x, HEIGHT - pixel_y))
@@ -369,20 +425,20 @@ def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(1), Decimal
 	point_intensity = LIGHT_SOURCE_COLOR
 	magnitude = LIGHT_SOURCE_POSITION[0] ** 2 + LIGHT_SOURCE_POSITION[1] ** 2 + LIGHT_SOURCE_POSITION[2] ** 2
 	magnitude = sqrt(magnitude)
-	light_position = list(map(lambda i: Decimal(-i / magnitude), LIGHT_SOURCE_POSITION))
+	light_position = list(map(lambda i: Decimal(i / magnitude), LIGHT_SOURCE_POSITION))
 	
 	# assume normal is already normalized
-	cos_fi = normal[0] * light_position[0] + normal[1] * light_position[1] + normal[2] * light_position[2]
-	diffuse_component = map(lambda i, k: max(Decimal(i) * Decimal(k) * cos_fi, 0), point_intensity, base_color)
+	cos_fi = normal[0] * -light_position[0] + normal[1] * -light_position[1] + normal[2] * -light_position[2]
+	diffuse_component = map(lambda i, k: max(Decimal(i) * Decimal(k) * -cos_fi, 0), point_intensity, base_color)
 	
 	zero = Decimal(0)
 	
 	if cos_fi == zero:
-		reflection_vector = map(lambda l: l * -1, light_position)
+		reflection_vector = map(lambda l: l, light_position)
 	elif cos_fi > zero:
-		reflection_vector = map(lambda n, l: n - (l / (2*cos_fi)), normal, light_position)
+		reflection_vector = map(lambda n, l: n - (-l / (2*cos_fi)), normal, light_position)
 	else:
-		reflection_vector = map(lambda n, l: (n * -1) + (l / (2*cos_fi)), normal, light_position)
+		reflection_vector = map(lambda n, l: (n * -1) + (-l / (2*cos_fi)), normal, light_position)
 	
 	reflection_vector = list(reflection_vector)
 	magnitude = reflection_vector[0] ** 2 + reflection_vector[1] ** 2 + reflection_vector[2] ** 2
@@ -404,10 +460,12 @@ HEIGHT = 400
 
 DEPTH = 3
 
-SPHERE1_POSITION = [-20, 0, 0]
+BOARD_POSITION = [0, -200, 0]
+
+SPHERE1_POSITION = [-20, 0, 400]
 SPHERE1_RADIUS = 50
 
-SPHERE2_POSITION = [100, 0, 110]
+SPHERE2_POSITION = [100, 0, 500]
 SPHERE2_RADIUS = 100
 
 AMBIENT_INTENSITY = [0.7, 0.7, 0.7]
@@ -415,7 +473,7 @@ LIGHT_SOURCE_COLOR = [1.0, 1.0, 1.0]
 LIGHT_SOURCE_POSITION = [1.0, 1.0, -1.0]
 
 VIEW_VECTOR = [Decimal(0), Decimal(0), Decimal(1)]
-SPECULAR_N = Decimal(2)
+SPECULAR_N = Decimal(7)
 
 root = Tk()
 
