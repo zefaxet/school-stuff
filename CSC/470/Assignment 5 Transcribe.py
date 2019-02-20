@@ -7,7 +7,7 @@ from math import *
 # set the precision for Decimal operations to 28 digits
 getcontext().prec = 28
 
-
+pixel_x = 0
 def render():
 
 	depth = DEPTH  # maximum ray depth
@@ -16,6 +16,7 @@ def render():
 	# center of projection
 	xs, ys, zs = Decimal(0.0), Decimal(0.0), Decimal(-800.0)
 
+	global pixel_x
 	for pixel_x in range(1, WIDTH + 1):
 
 		screen_x = pixel_x - Decimal(WIDTH) / 2
@@ -37,7 +38,7 @@ def render():
 
 def trace_ray(flag: int, level: int,
 			xs: Decimal, ys: Decimal, zs: Decimal,
-			ray_i: Decimal, ray_j: Decimal, ray_k: Decimal, temp=None) -> [int, int, int]:
+			ray_i: Decimal, ray_j: Decimal, ray_k: Decimal) -> [int, int, int]:
 
 	if level == 0:
 
@@ -50,7 +51,7 @@ def trace_ray(flag: int, level: int,
 		# and set rgb values corresponding to objects
 
 		# set distance of closest object initially to a very large number
-		t = [100000]  # todo maybe set this to math.inf
+		t = [inf]
 
 		# initially no object has been intersected by the ray
 		object_code = -1
@@ -86,7 +87,6 @@ def trace_ray(flag: int, level: int,
 		obj_normal_z = normal_refs[2]
 
 		if object_code == 0:
-			# todo modify function call to take reflection depth and a ray direction for reflections
 			ir, ig, ib = checkerboard_point_intensity(level, ray_j, ray_j, ray_k,
 												intersect_x, intersect_y, intersect_z)
 		elif object_code == 1:
@@ -96,7 +96,7 @@ def trace_ray(flag: int, level: int,
 		elif object_code == 2:
 			ir, ig, ib = sphere2_point_intensity(level, ray_i, ray_j, ray_k,
 												intersect_x, intersect_y, intersect_z,
-												obj_normal_x, obj_normal_y, obj_normal_z, temp)
+												obj_normal_x, obj_normal_y, obj_normal_z)
 		else:
 			# set pixel color to background color (light blue)
 			ir, ig, ib = 150, 150, 255
@@ -144,7 +144,7 @@ def checkerboard_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 
 
 def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
-								 x: Decimal, y: Decimal, z: Decimal) -> tuple:
+								x: Decimal, y: Decimal, z: Decimal) -> tuple:
 
 	# a red and white checkered plane
 	
@@ -154,36 +154,31 @@ def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray
 	ray_y_norm = ray_y / magnitude
 	ray_z_norm = ray_z / magnitude
 	
-	nx, ny, nz = Decimal(0), Decimal(1), Decimal(0)
-	
-	magnitude = (nx ** 2 + ny ** 2 + nz ** 2).sqrt()
-	nx_norm = nx / magnitude
-	ny_norm = ny / magnitude
-	nz_norm = nz / magnitude
-	
 	# calculate reflection vector
-	cosine_phi = (-ray_x_norm * nx_norm) + (-ray_y_norm * ny_norm) + (-ray_z_norm * nz_norm)
+	# todo reset ray calculations so that they point in the right direction of figure out whats wrong
+	print(ray_y_norm)
+	cosine_phi = -ray_y_norm
 	
 	if cosine_phi > 0:
 
-		rx = nx_norm - (ray_x_norm) / (2 * cosine_phi)
-		ry = ny_norm - (ray_y_norm) / (2 * cosine_phi)
-		rz = nz_norm - (ray_z_norm) / (2 * cosine_phi)
+		rx = ray_x_norm / (2 * cosine_phi)
+		ry = 1 - (-ray_y_norm) / (2 * cosine_phi)
+		rz = ray_z_norm / (2 * cosine_phi)
 
 	elif cosine_phi == 0:
 
-		rx = -ray_x_norm
-		ry = -ray_y_norm
-		rz = -ray_z_norm
+		rx = ray_x_norm
+		ry = ray_y_norm
+		rz = ray_z_norm
 
-	else:
-
-		rx = -nx_norm + (ray_x_norm) / (2 * cosine_phi)
-		ry = -ny_norm + (ray_y_norm) / (2 * cosine_phi)
-		rz = -nz_norm + (ray_z_norm) / (2 * cosine_phi)
+	else: # todo see if we need this at the end
+		print("testt")
+		rx = (-ray_x_norm) / (2 * cosine_phi)
+		ry = -1 + (-ray_y_norm) / (2 * cosine_phi)
+		rz = (-ray_z_norm) / (2 * cosine_phi)
 
 	# trace the reflection ray
-	ir, ig, ib = trace_ray(0, level - 1, x, y, z, rx, ry, rz, temp="plane")
+	ir, ig, ib = trace_ray(0, level - 1, x, y + Decimal(0.000001), z, rx, ry, rz)
 	
 	# compute local at intersection point
 	color_flag = 1 if x >= 0 else 0
@@ -205,18 +200,15 @@ def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray
 		ir_local = 255
 		ig_local = 255
 		ib_local = 255
-		
-	if [ir, ig, ib] == [0, 0, 0]:
-		
-		ir, ig, ib = ir_local, ig_local, ib_local
-		
-	else:
-		
-		# add effect of local color
-		ir = int(.3 * ir + .7 * ir_local)
-		ig = int(.3 * ig + .7 * ig_local)
-		ib = int(.3 * ib + .7 * ib_local)
-	 
+
+	# if [ir, ig, ib] != [255, 255, 255] and [ir, ig, ib] != [255, 0, 0]:
+	# 	print(pixel_x, ir, ig, ib, level)
+
+	# add effect of local color
+	ir = int(.3 * ir + .7 * ir_local)
+	ig = int(.3 * ig + .7 * ig_local)
+	ib = int(.3 * ib + .7 * ib_local)
+
 	return ir, ig, ib
 
 
@@ -354,7 +346,7 @@ def sphere2_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 
 def sphere2_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 							x: Decimal, y: Decimal, z: Decimal,
-							nx: Decimal, ny: Decimal, nz: Decimal, temp=None):
+							nx: Decimal, ny: Decimal, nz: Decimal):
 	
 	magnitude = (ray_x ** 2 + ray_y ** 2 + ray_z ** 2).sqrt()
 	ray_x_norm = ray_x / magnitude
@@ -392,13 +384,11 @@ def sphere2_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: D
 	ir, ig, ib = trace_ray(0, level - 1, x, y, z, rx, ry, rz)
 
 	# add effect of local color
-	ir = int(.7 * ir + .3 * 200)
-	ig = int(.7 * ig + .3 * 16)
-	ib = int(.7 * ib + .3 * 16)
+	ir = int(.7 * ir + .3 * 255)
+	ig = int(.7 * ig + .3 * 0)
+	ib = int(.7 * ib + .3 * 255)
 	
 	ir, ig, ib = get_lit_color([ir, ig, ib], [nx_norm, ny_norm, nz_norm])
-	if temp is not None:
-		print(ir, ig, ib)
 
 	return ir, ig, ib
 
@@ -446,9 +436,6 @@ def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(1), Decimal
 	reflection_vector = list(map(lambda i: i / magnitude, reflection_vector))
 	cos_theta = VIEW_VECTOR[0] * reflection_vector[0] + VIEW_VECTOR[1] * reflection_vector[1] + VIEW_VECTOR[2] * reflection_vector[2]
 	specular_component = map(lambda i, k: 255 * (max(Decimal(i) * k * cos_theta, 0) ** SPECULAR_N), point_intensity, specular_reflectivity)
-
-	specular_component = list(specular_component)
-	print(specular_component)
 	
 	return list(map(lambda a, b, c: int(Decimal(a) + b + c), ambient_component, diffuse_component, specular_component))
 
@@ -458,17 +445,17 @@ def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(1), Decimal
 WIDTH = 600
 HEIGHT = 400
 
-DEPTH = 3
+DEPTH = 2
 
 BOARD_POSITION = [0, -200, 0]
 
-SPHERE1_POSITION = [-20, 0, 400]
+SPHERE1_POSITION = [-50, -150, 400]
 SPHERE1_RADIUS = 50
 
-SPHERE2_POSITION = [100, 0, 500]
+SPHERE2_POSITION = [100, -100, 500]
 SPHERE2_RADIUS = 100
 
-AMBIENT_INTENSITY = [0.7, 0.7, 0.7]
+AMBIENT_INTENSITY = [0.4, 0.4, 0.4]
 LIGHT_SOURCE_COLOR = [1.0, 1.0, 1.0]
 LIGHT_SOURCE_POSITION = [1.0, 1.0, -1.0]
 
