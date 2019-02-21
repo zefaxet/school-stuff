@@ -4,6 +4,7 @@
 # Desc: My Barbie World Adventure!
 #########################################
 
+# state class contains the story piece and the next parts of the story you can go to
 class State(object):
 
 	def __init__(self):
@@ -36,6 +37,7 @@ class State(object):
 
 states = {}
 
+# set all of the states with their story pieces and the states they can go to
 start = State()
 start.story = "You are a Barbie Girl in a Barbie World. Wrapped in Plastic, it's fantastic.\nYou want to be famous, no matter what it takes.\nHow should you do this?"
 start.addOption("surgery", "Do plastic surgery.")
@@ -147,7 +149,7 @@ states["try"] = trySchool
 # Main ###########################
 print("VERY IMPORTANT!")
 print("Go to the following link to play the background music for this story. It is VERY important for the mood and crucial for the story.")
-print("https://www.youtube.com/watch?v=CEYHQjcn_M8")
+print("https://www.youtube.com/watch?v=ZyhrYis509A")
 raw_input("When the music is ready, press enter to start the story.\n")
 
 currentState = start
@@ -155,8 +157,10 @@ currentState = start
 while len(currentState.options) > 0:
 
 	print(currentState)
+	# get the state to go to next
 	option = raw_input("Do: ")
 	option = option.lower()
+	# make sure state is valid in the story path
 	if not currentState.isOptionValid(option):
 		print("Invalid option.")
 		print("")
