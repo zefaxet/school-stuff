@@ -428,7 +428,7 @@ def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(1), Decimal
 	zero = Decimal(0)
 	
 	if cos_fi == zero:
-		reflection_vector = map(lambda l: l, light_position)
+		reflection_vector = light_position
 	elif cos_fi > zero:
 		reflection_vector = map(lambda n, l: n - (-l / (2*cos_fi)), normal, light_position)
 	else:
