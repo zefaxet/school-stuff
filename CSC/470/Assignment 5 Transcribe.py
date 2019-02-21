@@ -86,7 +86,9 @@ def trace_ray(flag: int, level: int,
 		obj_normal_z = normal_refs[2]
 
 		if object_code == 0:
-			ir, ig, ib = checkerboard_point_intensity(level, ray_j, ray_j, ray_k,
+			if level == 2:
+				print(ray_j)
+			ir, ig, ib = checkerboard_point_intensity(level, ray_i, ray_j, ray_k,
 												intersect_x, intersect_y, intersect_z)
 		elif object_code == 1:
 			ir, ig, ib = sphere1_point_intensity(level, ray_i, ray_j, ray_k,
@@ -182,7 +184,7 @@ def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray
 		rz = -nz_norm + (-ray_z_norm) / (2 * cosine_phi)
 
 	# trace the reflection ray
-	ir, ig, ib = trace_ray(0, level - 1, x, y + Decimal(0.000001), z, rx, ry, rz)
+	ir, ig, ib = trace_ray(0, level - 1, x, y + Decimal(0.000001), z, ray_x_norm, -ray_y_norm, ray_z_norm)
 	
 	# compute local at intersection point
 	color_flag = 1 if x >= 0 else 0
@@ -453,10 +455,10 @@ DEPTH = 2
 
 BOARD_POSITION = [0, -200, 0]
 
-SPHERE1_POSITION = [-50, -150, 400]
+SPHERE1_POSITION = [-50, -125, 500]
 SPHERE1_RADIUS = 50
 
-SPHERE2_POSITION = [100, -100, 500]
+SPHERE2_POSITION = [100, -100, 600]
 SPHERE2_RADIUS = 100
 
 AMBIENT_INTENSITY = [0.4, 0.4, 0.4]
