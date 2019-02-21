@@ -7,7 +7,7 @@ from math import *
 # set the precision for Decimal operations to 28 digits
 getcontext().prec = 28
 
-pixel_x = 0
+
 def render():
 
 	depth = DEPTH  # maximum ray depth
@@ -16,7 +16,6 @@ def render():
 	# center of projection
 	xs, ys, zs = Decimal(0.0), Decimal(0.0), Decimal(-800.0)
 
-	global pixel_x
 	for pixel_x in range(1, WIDTH + 1):
 
 		screen_x = pixel_x - Decimal(WIDTH) / 2
@@ -130,10 +129,9 @@ def checkerboard_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 		z = zs + ray_z * t_object
 		if z < 0 or z > 8000 or t_object < 0:
 			# print("No visible intersection.")
-			pass
 			return False
 		elif t[0] < t_object:
-			pass
+			return False
 			# print("Another object is closer")
 		else:
 			t[0] = t_object
@@ -148,22 +146,28 @@ def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray
 
 	# a red and white checkered plane
 	
+	# normal of the plane
+	nx, ny, nz = Decimal(0), Decimal(1), Decimal(0)
+	
 	# normal of the incoming ray vector
 	magnitude = (ray_x ** 2 + ray_y ** 2 + ray_z ** 2).sqrt()
 	ray_x_norm = ray_x / magnitude
 	ray_y_norm = ray_y / magnitude
 	ray_z_norm = ray_z / magnitude
 	
+	magnitude = (nx ** 2 + ny ** 2 + nz ** 2).sqrt()
+	nx_norm = nx / magnitude
+	ny_norm = ny / magnitude
+	nz_norm = nz / magnitude
+	
 	# calculate reflection vector
-	# todo reset ray calculations so that they point in the right direction of figure out whats wrong
-	print(ray_y_norm)
-	cosine_phi = -ray_y_norm
+	cosine_phi = (-ray_x_norm * nx_norm) + (-ray_y_norm * ny_norm) + (-ray_z_norm * nz_norm)
 	
 	if cosine_phi > 0:
 
-		rx = ray_x_norm / (2 * cosine_phi)
-		ry = 1 - (-ray_y_norm) / (2 * cosine_phi)
-		rz = ray_z_norm / (2 * cosine_phi)
+		rx = - nx_norm - (ray_x_norm) / (2 * -cosine_phi)
+		ry = ny_norm - (-ray_y_norm) / (2 * -cosine_phi)
+		rz = nz_norm - (-ray_z_norm) / (2 * cosine_phi)
 
 	elif cosine_phi == 0:
 
@@ -171,11 +175,11 @@ def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray
 		ry = ray_y_norm
 		rz = ray_z_norm
 
-	else: # todo see if we need this at the end
-		print("testt")
-		rx = (-ray_x_norm) / (2 * cosine_phi)
-		ry = -1 + (-ray_y_norm) / (2 * cosine_phi)
-		rz = (-ray_z_norm) / (2 * cosine_phi)
+	else:
+
+		rx = -nx_norm + (-ray_x_norm) / (2 * cosine_phi)
+		ry = -ny_norm + (-ray_y_norm) / (2 * cosine_phi)
+		rz = -nz_norm + (-ray_z_norm) / (2 * cosine_phi)
 
 	# trace the reflection ray
 	ir, ig, ib = trace_ray(0, level - 1, x, y + Decimal(0.000001), z, rx, ry, rz)
