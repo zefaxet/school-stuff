@@ -1,6 +1,14 @@
 from tkinter import *
 from decimal import *
 from math import *
+# Name: Edward Auttonberry
+# CWID: 102-48-286
+# DATE: 2/21/2019
+# Assignment 5 -- Raytracing
+# Desc: This program calculates the appearance of a virtual environment populated with reflective objects.
+# The current implementation contains two spheres and a plane. Raytracing is used to calculate the shape of objects
+# as well as surface normals for phong lighting and detecting regions in shadow.
+
 
 # METHODS #####################################
 
@@ -8,6 +16,7 @@ from math import *
 getcontext().prec = 28
 
 
+# transcribed method that directs calculating the color of each pixel
 def render():
 
 	depth = DEPTH  # maximum ray depth
@@ -35,6 +44,8 @@ def render():
 			put_pixel(pixel_x, pixel_y, ir, ig, ib)
 
 
+# transcribed method
+# determines if any objects are in the path of a given ray and if so what the color should be of that ray
 def trace_ray(flag: int, level: int,
 			xs: Decimal, ys: Decimal, zs: Decimal,
 			ray_i: Decimal, ray_j: Decimal, ray_k: Decimal) -> [int, int, int]:
@@ -103,6 +114,8 @@ def trace_ray(flag: int, level: int,
 		return ir, ig, ib
 
 
+# transcribed method
+# determines if a ray intersects with the flat plane in the scene
 def checkerboard_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 							ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 							t: list, intersect_refs: list) -> bool:
@@ -141,6 +154,9 @@ def checkerboard_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 			return True
 
 
+# transcribed method
+# determines the color of a given ray intersecting the checkerboard plane
+# this method has been updated to calculate reflections off of the plane as well as shadows
 def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 								x: Decimal, y: Decimal, z: Decimal) -> tuple:
 
@@ -186,6 +202,8 @@ def checkerboard_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray
 	return ir, ig, ib
 
 
+# transcribed method
+# determines if a ray passes through the smaller sphere in the scene
 def sphere1_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 						ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 						t: list, intersect_refs: list, normal_refs: list) -> bool:
@@ -227,6 +245,9 @@ def sphere1_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 			return True
 
 
+# transcribed method
+# determines the color of a ray at the surface of the smaller sphere
+# this method has been updated to incorporate the lighting model
 def sphere1_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 							x: Decimal, y: Decimal, z: Decimal,
 							nx: Decimal, ny: Decimal, nz: Decimal):
@@ -276,6 +297,8 @@ def sphere1_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: D
 	return ir, ig, ib
 
 
+# transcribed method
+# determines if a ray passes through the smaller sphere in the scene
 def sphere2_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 						ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 						t: list, intersect_refs: list, normal_refs: list) -> bool:
@@ -318,6 +341,9 @@ def sphere2_intersection(xs: Decimal, ys: Decimal, zs: Decimal,
 			return True
 
 
+# transcribed method
+# determines the color of a ray at the surface of the larger sphere
+# this method has been updated to incorporate the lighting model
 def sphere2_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: Decimal,
 							x: Decimal, y: Decimal, z: Decimal,
 							nx: Decimal, ny: Decimal, nz: Decimal):
@@ -367,6 +393,7 @@ def sphere2_point_intensity(level: int, ray_x: Decimal, ray_y: Decimal, ray_z: D
 	return ir, ig, ib
 
 
+# updates the photoimage objects used to draw the scene on the canvas at a given pixel
 def put_pixel(pixel_x: int, pixel_y: int, ir: int, ig: int, ib: int):
 
 	ir = min(ir, 244)
@@ -380,6 +407,8 @@ def put_pixel(pixel_x: int, pixel_y: int, ir: int, ig: int, ib: int):
 	surface.put(color, (pixel_x, HEIGHT - pixel_y))
 
 
+# determine the modifications to base color based on the phong lighting model and optionally based on whether the
+# color is in a shaded region
 def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(1), Decimal(1), Decimal(1)], position=None):
 	
 	global LIGHT_SOURCE_POSITION
@@ -438,7 +467,7 @@ def get_lit_color(base_color, normal, specular_reflectivity=[Decimal(1), Decimal
 	return list(map(lambda a, b, c: int(Decimal(a) + b + c), ambient_component, diffuse_component, specular_component))
 
 
-# MAIN ########################################
+# PROGRAM CONSTANTS ###########################
 
 WIDTH = 600
 HEIGHT = 400
@@ -459,6 +488,8 @@ LIGHT_SOURCE_POSITION = [1.0, 1.0, -1.0]
 
 VIEW_VECTOR = [Decimal(0), Decimal(0), Decimal(1)]
 SPECULAR_N = Decimal(7)
+
+# MAIN ########################################
 
 root = Tk()
 
