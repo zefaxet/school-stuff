@@ -3,6 +3,7 @@
 # Date: 2/20/2019
 # Desc: My Barbie World Adventure!
 #########################################
+from random import randint
 
 # state class contains the story piece and the next parts of the story you can go to
 class State(object):
@@ -146,28 +147,41 @@ trySchool = State()
 trySchool.story = "You try really hard to pass the right way, because the right way always wins.\nIt takes you 8 years to graduate with a terrible GPA but you feel really good about it in the end.\nSurely your hard work will be rewarded!\nAfter years of fruitless searching you finally land a job as a high school english teacher. Shucks!"
 states["try"] = trySchool
 
+# for randomness, because modeling is such a chaotic and uncertain career path, make it so that sometimes modeling works out
+# both diet and liposuction have a 30% chance each of guaranteed success to the yeezy path
+if randint(0, 100) > 70:
+	states["diet"] = yeezy
+if randint(0, 100) > 70:
+	states["liposuction"] = yeezy
+
 # Main ###########################
 print("VERY IMPORTANT!")
 print("Go to the following link to play the background music for this story. It is VERY important for the mood and crucial for the story.")
 print("https://www.youtube.com/watch?v=ZyhrYis509A")
 raw_input("When the music is ready, press enter to start the story.\n")
 
-currentState = start
+def game():
+	global currentState
+	while len(currentState.options) > 0:
 
-while len(currentState.options) > 0:
+		print(currentState)
+		# get the state to go to next
+		option = raw_input("Do: ")
+		option = option.lower()
+		# make sure state is valid in the story path
+		if not currentState.isOptionValid(option):
+			print("Invalid option.")
+			print("")
+			continue
+		else:
+			currentState = states[option]
+			print("")
 
+while True:
+	currentState = states["start"]
+	game()
 	print(currentState)
-	# get the state to go to next
-	option = raw_input("Do: ")
-	option = option.lower()
-	# make sure state is valid in the story path
-	if not currentState.isOptionValid(option):
-		print("Invalid option.")
-		print("")
-		continue
-	else:
-		currentState = states[option]
-		print("")
-
-print(currentState)
-print("That's the end!")
+	print("That's the end!")
+	playAgain = raw_input("Would you like to play again? (Y/y to play again, anything else is considered no.): ")
+	if playAgain.lower() != "y":
+		break
