@@ -1,7 +1,7 @@
 ######################################################################################################################
-# Name: 
-# Date: 
-# Description: 
+# Name: Anisah Alahmed
+# Date: 3/27/2019
+# Description: Randomly plots some points in tkinter
 ######################################################################################################################
 
 from tkinter import *
@@ -60,22 +60,37 @@ class Point(object):
 # inherits from the Canvas class of Tkinter
 class CoordinateSystem(Canvas):
 
-	def __init__(self, master, pointRadius=0):
+	def __init__(self, master, pointRadius=0, pointColor=None):
 		Canvas.__init__(self, master)
+		#set class variables
 		self.pointRadius = pointRadius
+		self.pointColor = pointColor
+		#list of colors to choose from randomly
+		self.colors = ["black", "red", "green", "blue", "cyan", "yellow", "magenta"]
+		#add to tkinter window, take all available space
 		self.pack(fill=BOTH, expand=True)
 
+	#plot a number of points on this canvas
 	def plotPoints(self, numPoints):
 		for x in xrange(numPoints):
+			#create the point with random x and y coordinates
 			point = Point(randint(0, WIDTH), randint(0, HEIGHT))
-			color = "#%06X" % randint(0, 0xffffff)
+			#if a color is set, use that one
+			if not self.pointColor == None:
+				color = self.pointColor
+			#otherwise use a random one
+			else:
+				color = self.colors[randint(0, len(self.colors) - 1)]
+			#plot the point with the set radius
 			self.plotPoint(point, self.pointRadius, color)
 
 	def plotPoint(self, point, radius, color):
+		#use the radius to get the corner coordinates of the bounding box
 		pointXFirst = point.x - radius
 		pointYFirst = point.y - radius
 		pointXLast = point.x + radius
 		pointYLast = point.y + radius
+		#add point to canvas with bounding box coordinates and color
 		self.create_oval(pointXFirst, pointYFirst, pointXLast, pointYLast, outline=color)
 
 ##########################################################
