@@ -8,8 +8,7 @@ import RPi.GPIO as GPIO
 from time import sleep, time
 import pygame
 from array import array
-
-from waveform_vis import WaveformVis
+from math import sin, pi, floor
 
 MIXER_FREQ = 44100
 MIXER_SIZE = -16
@@ -17,36 +16,49 @@ MIXER_CHANS = 1
 MIXER_BUFF = 1024
 
 def square(period, amplitude, samples):
-	
 	for t in range(period):
 		if (t < period / 2):
 			samples[t] = amplitude
 		else:
-			samples[t] = -amplitude
-		
+			samples[t] = -amplitude	
 	return samples
 
 def triangle(period, maxAmplitude, samples):
-	
 	amplitude = 0
-	direction = 1
 	periodFourth = period / 4;
 	increment = maxAmplitude / periodFourth
 	for t in range(period):
-		if (t > periodFourth and t < periodFourth * 3):
-			amplitude += increment
-			print "test"
-		else:
+                samples[t] = amplitude
+		if (t >= periodFourth and t < periodFourth * 3):
 			amplitude -= increment
-		samples[t] = amplitude
+		else:
+			amplitude += increment
 	
 	return samples
 
 def sawtooth(period, maxAmplitude, samples):
-	pass
 
-def sinewave(period, maxAmplitude, samples):
-	pass
+        amplitude = 0
+        periodHalf = period / 2
+        increment = maxAmplitude / periodHalf
+        for t in range(period):
+                samples[t] = amplitude
+                if (t == periodHalf):
+                        amplitude *= -1
+                amplitude += increment
+        return samples
+
+def sinewave(period, amplitude, samples):
+	from waveform_vis import WaveformVis
+        vis = WaveformVis()
+
+        for t in range(period):
+                sample = sin(float(t)/float(period) * (2 * pi))
+                print sample
+                samples[t] = int(sample * amplitude)
+        
+        vis.visSamples(samples, "sine")
+        return samples
 
 # the note generator class
 class Note(pygame.mixer.Sound):
@@ -54,7 +66,7 @@ class Note(pygame.mixer.Sound):
     # note that volume ranges from 0.0 to 1.0
     def __init__(self, frequency, volume, waveformFunction):
         self.frequency = frequency
-		self.waveformFunction = waveformFunction
+	self.waveformFunction = waveformFunction
         # initialize the note using an array of samples
         pygame.mixer.Sound.__init__(self,\
             buffer=self.build_samples())
