@@ -9,6 +9,8 @@ from time import sleep, time
 import pygame
 from array import array
 
+from waveform_vis import WaveformVis
+
 MIXER_FREQ = 44100
 MIXER_SIZE = -16
 MIXER_CHANS = 1
@@ -33,6 +35,7 @@ def triangle(period, maxAmplitude, samples):
 	for t in range(period):
 		if (t > periodFourth and t < periodFourth * 3):
 			amplitude += increment
+			print "test"
 		else:
 			amplitude -= increment
 		samples[t] = amplitude
@@ -51,7 +54,7 @@ class Note(pygame.mixer.Sound):
     # note that volume ranges from 0.0 to 1.0
     def __init__(self, frequency, volume, waveformFunction):
         self.frequency = frequency
-	self.waveformFunction = waveformFunction
+		self.waveformFunction = waveformFunction
         # initialize the note using an array of samples
         pygame.mixer.Sound.__init__(self,\
             buffer=self.build_samples())
