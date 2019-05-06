@@ -144,4 +144,37 @@ try:
         # if recording, append the duration of the silence
         if (recording):
             song.append(["SILENCE", duration])
-        #
+        # if the record button was pressed
+		if (key == "record"):
+			# if not previously recording, reset the song
+			if (not recording):
+				song = []
+			# note the recording state and turn on the red LED
+			recording = not recording
+			GPIO.output(red, recording)
+		# if the play button was pressed
+		elif (key == "play"):
+			# if recording, stop
+			if (recording):
+				recording = False
+			# turn on the green LED
+			GPIO.output(red, False)
+			GPIO.output(green, True)
+			# play the song
+			play_song()
+			GPIO.output(green, False)
+		# otherwise, a piano key was pressed
+		else:
+			# start the timer and play the note
+			start = time()
+			notes[key].play(-1)
+			wait_for_note_stop(keys[key])
+			notes[key].stop()
+			# once the note is released, stop the timer
+			duration = time() - start
+			# if recording, append the note and its duration
+			if (recording):
+				song.append([key, duration])
+except KeyboardInterrupt:
+	# reset the GPIO pins
+	GPIO.cleanup()
