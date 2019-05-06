@@ -15,6 +15,7 @@ MIXER_SIZE = -16
 MIXER_CHANS = 1
 MIXER_BUFF = 1024
 
+#this function will return the square waveform we already had
 def square(period, amplitude, samples):
 	for t in range(period):
 		if (t < period / 2):
@@ -23,19 +24,23 @@ def square(period, amplitude, samples):
 			samples[t] = -amplitude	
 	return samples
 
+#this function will return a triangular waveform
 def triangle(period, maxAmplitude, samples):
 	amplitude = 0
 	periodFourth = period / 4;
 	increment = maxAmplitude / periodFourth
 	for t in range(period):
                 samples[t] = amplitude
+				#during the middle half of the period, the waveform has a downward slope
 		if (t >= periodFourth and t < periodFourth * 3):
 			amplitude -= increment
+		#everywhere else has an upward slope
 		else:
 			amplitude += increment
 	
 	return samples
 
+#this function will return a sawtooth waveform
 def sawtooth(period, maxAmplitude, samples):
 
         amplitude = 0
@@ -43,27 +48,28 @@ def sawtooth(period, maxAmplitude, samples):
         increment = maxAmplitude / periodHalf
         for t in range(period):
                 samples[t] = amplitude
+				#halfway into the period, the position of the waveform should drop to the bottom
                 if (t == periodHalf):
                         amplitude *= -1
                 amplitude += increment
         return samples
 
+#this function will return a sinusoidal waveform
 def sinewave(period, amplitude, samples):
-	from waveform_vis import WaveformVis
-        vis = WaveformVis()
 
         for t in range(period):
+				#reduce the period into increments of 2 * PI and take the sine of it
                 sample = sin(float(t)/float(period) * (2 * pi))
-                print sample
+				#apply the amplitude to the sample
                 samples[t] = int(sample * amplitude)
         
-        vis.visSamples(samples, "sine")
         return samples
 
 # the note generator class
 class Note(pygame.mixer.Sound):
     
     # note that volume ranges from 0.0 to 1.0
+	#the Note class now takes a parameter which is a function to produce a waveform
     def __init__(self, frequency, volume, waveformFunction):
         self.frequency = frequency
 	self.waveformFunction = waveformFunction
@@ -81,6 +87,7 @@ class Note(pygame.mixer.Sound):
         # signed 16-bit "shorts")
         samples = array("h", [0] * period)
         
+		#call the function to produce whichever waveform this note uses
         return self.waveformFunction(period, amplitude, samples)
 
 # waits until a note is pressed
@@ -136,7 +143,9 @@ GPIO.setmode(GPIO.BCM)
 
 # setup the pins and frequencies for the notes (C, E, G, B)
 keys = [ 20, 16, 12, 26 ]
+#we only care about middle C
 freq = 261.6
+#the different notes have different waveforms now
 waveforms = [square, triangle, sawtooth, sinewave]
 notes = []
 
@@ -160,6 +169,7 @@ GPIO.setup(green, GPIO.OUT)
 GPIO.setup(blue, GPIO.OUT)
 
 # create the actual notes
+#now we iterate over the waveforms and create different notes based off of them
 for n in range(len(waveforms)):
     notes.append(Note(freq, 1, waveforms[n]))
 
