@@ -4,6 +4,13 @@
 # Description: Paper piano (v3).
 ########################################
 
+#My observations about the various waveforms are as follows:
+#	The square waveform sounded very plain and robotic
+#	The triangle waveform sounded more typical of a real sound, but still somewhat robotic
+#		It was also very dull
+#	The sawtooth waveform sounded very similar to the square waveform but with an extra "buzz"
+#	The sine waveform sounded closest to the triangle, but it was missing a layer of "digitalish" sound
+
 import RPi.GPIO as GPIO
 from time import sleep, time
 import pygame
