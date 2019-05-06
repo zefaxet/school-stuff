@@ -51,7 +51,7 @@ class Note(pygame.mixer.Sound):
     # note that volume ranges from 0.0 to 1.0
     def __init__(self, frequency, volume, waveformFunction):
         self.frequency = frequency
-		self.waveformFunction = waveformFunction
+	self.waveformFunction = waveformFunction
         # initialize the note using an array of samples
         pygame.mixer.Sound.__init__(self,\
             buffer=self.build_samples())
@@ -145,12 +145,8 @@ GPIO.setup(green, GPIO.OUT)
 GPIO.setup(blue, GPIO.OUT)
 
 # create the actual notes
-for n in range(len(freqs)):
-<<<<<<< HEAD
-	notes.append(Note(freqs[n], 1))
-=======
+for n in range(len(waveforms)):
     notes.append(Note(freq, 1, waveforms[n]))
->>>>>>> 5b260a0480efe17f776d4d215ca363a6527b49d4
 
 # begin in a non-recording state and initialize the song
 recording = False
