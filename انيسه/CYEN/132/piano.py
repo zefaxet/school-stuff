@@ -14,34 +14,59 @@ MIXER_SIZE = -16
 MIXER_CHANS = 1
 MIXER_BUFF = 1024
 
+def square(period, amplitude, samples):
+	
+	for t in range(period):
+		if (t < period / 2):
+			samples[t] = amplitude
+		else:
+			samples[t] = -amplitude
+		
+	return samples
+
+def triangle(period, maxAmplitude, samples):
+	
+	amplitude = 0
+	direction = 1
+	periodFourth = period / 4;
+	increment = maxAmplitude / periodFourth
+	for t in range(period):
+		if (t > periodFourth and t < periodFourth * 3):
+			amplitude += increment
+		else:
+			amplitude -= increment
+		samples[t] = amplitude
+	
+	return samples
+
+def sawtooth(period, maxAmplitude, samples):
+	pass
+
+def sinewave(period, maxAmplitude, samples):
+	pass
+
 # the note generator class
 class Note(pygame.mixer.Sound):
-	
-	# note that volume ranges from 0.0 to 1.0
-	def __init__(self, frequency, volume):
-		self.frequency = frequency
-		# initialize the note using an array of samples
-		pygame.mixer.Sound.__init__(self,\
-			buffer=self.build_samples())
-		self.set_volume(volume)
+    
+    # note that volume ranges from 0.0 to 1.0
+    def __init__(self, frequency, volume, waveformFunction):
+        self.frequency = frequency
+		self.waveformFunction = waveformFunction
+        # initialize the note using an array of samples
+        pygame.mixer.Sound.__init__(self,\
+            buffer=self.build_samples())
+        self.set_volume(volume)
 
-	# builds an array of samples for the current note
-	def build_samples(self):
-		# calculate the period and amplitude of the note's wave
-		period = int(round(MIXER_FREQ / self.frequency))
-		amplitude = 2 ** (abs(MIXER_SIZE) - 1) - 1
-		# initialize the note's samples (using an array of
-		# signed 16-bit "shorts")
-		samples = array("h", [0] * period)
-		
-		# generate the note's samples
-		for t in range(period):
-			if (t < period / 2):
-				samples[t] = amplitude
-			else:
-				samples[t] = -amplitude
-				
-		return samples
+    # builds an array of samples for the current note
+    def build_samples(self):
+        # calculate the period and amplitude of the note's wave
+        period = int(round(MIXER_FREQ / self.frequency))
+        amplitude = 2 ** (abs(MIXER_SIZE) - 1) - 1
+        # initialize the note's samples (using an array of
+        # signed 16-bit "shorts")
+        samples = array("h", [0] * period)
+        
+        return self.waveformFunction(period, amplitude, samples)
 
 # waits until a note is pressed
 def wait_for_note_start():
@@ -96,7 +121,8 @@ GPIO.setmode(GPIO.BCM)
 
 # setup the pins and frequencies for the notes (C, E, G, B)
 keys = [ 20, 16, 12, 26 ]
-freqs = [ 261.6, 329.6, 392.0, 493.9 ]
+freq = 261.6
+waveforms = [square, triangle, sawtooth, sinewave]
 notes = []
 
 # setup the button pins
@@ -120,7 +146,11 @@ GPIO.setup(blue, GPIO.OUT)
 
 # create the actual notes
 for n in range(len(freqs)):
+<<<<<<< HEAD
 	notes.append(Note(freqs[n], 1))
+=======
+    notes.append(Note(freq, 1, waveforms[n]))
+>>>>>>> 5b260a0480efe17f776d4d215ca363a6527b49d4
 
 # begin in a non-recording state and initialize the song
 recording = False
