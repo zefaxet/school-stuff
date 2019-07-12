@@ -1,0 +1,8 @@
+CHANGES:
+	Foreign keys in Review can be reduced to single reference to record in Orders table
+	We absolutely do not need Top_Type, Bottom_Type, or Shoe_Type
+		We do not make any foreign key references to it
+		It contains solely duplicate information
+	We probably dont need C_Order because it only contains duplicate information from Orders
+	Reduce_Stock_After_Purchase trigger doesnt work, should be update table clause?
+	
