@@ -1,0 +1,127 @@
+DBMS functionality:
+	Define DB
+	Construct DB
+	Manipulate DB
+	Share DB
+	Protect DB
+	Maintain DB
+
+Database design stages:
+	Specification of requirements
+	Conceptual design: Entity-relationship models
+	Local Design: Type of db implementation
+	Physical Design: Setup
+
+Categories of data models:
+	Conceptual: close to user perception
+	Implementation: user-readable system storage
+	Physical: describes low-level storage
+
+DB Schema:
+	Description of the database, rarely changed
+
+DB State:
+	Snapshot, candid
+
+Independence:
+	Logical:
+		Can change conceptual schema without changing external schema
+	Physical:
+		Can change internal schema without changing conceptual schema
+
+Two-tier architecture:
+	User interface and application logic occur on client-side
+	Application requests transactions from the db server directly
+
+Three-tier architecture:
+	User interfaces with a client
+	Client makes requests to application server
+	Application server makes database server requests hidden from the user
+
+Entity:
+	Object in the mini-world
+	
+Entity type:
+	Defines a collection of entities
+
+Entity set:
+	The collection of all entities of a type
+
+Specialization constraints:
+	Disjointness constraint:
+		Disjoint (d):
+			Entity can be a member of at most on subclass of a specialization
+		Overlapping (o):
+			Entity can be a member of more than one subclass of a specialization
+
+	Completeness constraint:
+		Total (double line to disjoint):
+			Every entity in the superclass must be a memer of some subclass
+		Partial:
+			Allows an entity to not beling to a subclass
+
+Relationship:
+	relates two or more entities in a meaningful way
+
+Relationship type:
+	Defines a collection of relationships among entities from entity tpes
+
+Relationship set:
+	The set of relationship instances in the database
+	The state of a relationship type
+
+Constraints on relationships:
+	Cardinality ratio:
+		Specifies maxmimum number of relationship instances that an entity can participate in
+			(1:1), (1:N), (N:1), (M:N)
+	Participation constraint:
+		Specifies minimum number of relationship instances
+		Total:
+			Mandatory participation (double line)
+		Partial:
+			Optional participation (single line)
+
+Schema-Based constraints:
+	Domain:
+		Value must be of correct data type
+	Key:
+		Value of key must be unique
+	Entity Integrity:
+		Value of primary key is required to be defined
+	Referential Integrity:
+		Foreign key values must reference valid primary keys
+
+Relational Algebra:
+	Select (sigma):
+		Filters tuples to satisy a condition
+		Sequential select conditions can be cascaded into a single statement with ANDS
+	Project (pi):
+		Keeps certain columns from a relation only
+	RENAME (rho):
+		Renames a relation and the result columns
+	Union:
+		Relation includes tuples present in at least one selected set
+	Intersection:
+		Relation includes tuples present in all selected sets
+	Set difference:
+		Relation includes tuples present only in one set but not another specified set
+	The operand sets must be type compatible:
+		Same number of attributes
+		Pair of attributes from the two operand tuples must be the same type
+	Cartesian product:
+		Combines tuples from two relations in a combinatorial fashion
+			Result will be permutations of the tuples from the N relationships
+	Join (sideways hourglass):
+		Combines two tuples into a single tuple based on a condition
+		Join is done on a single attribute present in either tuple
+		Special joins:
+			Equijoin:
+				only equivalence comparisons
+			Natural join:
+				Equijoin with the duplicate attribute removed
+	Division:
+		Includes all tuples from one relation as as well as another tuple where the result relation is the intersection of the product and the second relation.
+
+Aggregation operations:
+	
+	Produces a single value as some function of all of the values in a relationship

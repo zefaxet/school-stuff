@@ -1,0 +1,7 @@
+Customer_Id,Username,Password,Card_Number,Card_Exp_Date,CCV,Street,City,State,Zip_Code
+1,Dr_Squash,supersecretcybersecuritypassword123plzhash,9999999999999999,2019-05-15,999,"123 Beer Keg Lane","Somwhere in",Louisiana,71270
+2,Mike_B_Anneal,teslarox123,NULL,NULL,NULL,NULL,NULL,NULL,NULL
+3,Andicould_Karrymore,somethingwitty,4053105967168794,2019-05-15,625,NULL,NULL,NULL,NULL
+4,NoChoiceButChoi,doyouevenflyhelicoptersbro,9100379691552724,2019-05-15,674,"CoolerThanYour St.",SomeLucritivePlace,Florida,99999
+5,PinkPrather,btwiworkedatEA,6429263201010659,2019-05-15,190,"The Thingery",Ruston,Louisiana,71270
+6,Dr_Cube,apictureofabear,NULL,NULL,NULL,"TheMiddleOfTheForest Street",TheForest,Louisiana,77777

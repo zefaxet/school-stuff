@@ -1,0 +1,125 @@
+LEVEL 1: ###########################################
+1: (Start)
+	You are a Barbie Girl in a Barbie World. Wrapped in Plastic, it's fantastic.
+	You want to be famous, no matter what it takes.
+	How should you do this?
+		Do Plastic Surgery (go to 2)
+		Apply to modeling agency (go to 3)
+		Make a real Hollywood movie (go to 4)
+
+LEVEL 2: ###########################################
+2: (Surgery)
+	You decide to get plastic surgery, but what kind of surgery do you want?
+		Butt Implants (go to 5)
+		Lip Fillers (go to 6)
+
+3: (Model)
+	When you apply to model for IMG models, they tell you you're too fat and need to lose a few inches of your waistline.
+		Strict Diet (go to 10)
+		Liposuction (go to 11)
+
+4: (Movie)
+	You pack your things and say goodbye to your family.
+	Hollywood acting is your true calling.
+	How do you reach fame?
+		Go to acting school (go to 17)
+		Make your own indie movie (go to 18)
+
+LEVEL 3: ###########################################
+5: (Implants)
+	You proceeded to get implants surgically in your butt. You posted the pictures on Instagram, which Kim Kardashian noticed and followed you for.
+	You are now BFFs with Kim Kardashian. So watermelon!
+	Where do you take your new connection?
+		Just stay friends and become social media influencer (go to 7)
+		Take advantage of her and become the main model for Yeezy (go to 8)
+
+6: (Fillers)
+	You proceed to get fillers for your lips. You posted the pictures on Instagram, which Kylie Jenner noticed and followed you for.
+	You are now BFFs with Kylie Jenner and you started a limited edition makeup line in cooperation with her.
+		Stay the course and become social media influencer, stealing from Kylie's mindless following. (Go to 7)
+		Hook up with your best friend's sister's boyfriend. (Go to 9)
+
+10: (Diet)
+	You proceed to subject yourself to extreme stress and pressure by taking away any enjoyment from eating.
+	You consume strictly whole weat gluten free bread and celery for 6 months.
+	After these months you are in a state of severe anguish and mental depression, and you haven't lost the inches yet.
+	Maybe you should have done lipsuction instead. It would have been easier.
+	What do you do?
+		Break Your Ribs to lose the inches (go to 12)
+		Keep dieting (go to 13)
+		Give up (go to 14)
+		Make body positivty videos on YouTube (go to 15)
+		Go to Dr. Phil and talk about your eating disorder (go to 16)
+
+11: (Liposuction)
+	You proceed to subject your body to intense physical stress of forcible removal of body fat.
+	This is a very uncomfortable procedure but it's worth it, you're going to be famous!
+	After 6 months tortuting your skin, you still haven't lost the inches.
+	Maybe you should have done the diet instead of trying to take a shortcut.
+	What do you do now?
+		Break your ribs to lose the inches (go to 12)
+		Give up (go to 14)
+		Make body positivity videos on Youtube (go to 15)
+	
+17: (School)
+	You enroll in some acting school nobody has ever heard of, but whatever - the degree is all that matters.
+	You discover that your acting skills are pretty terrible. How do you pass?
+		Seduce the teacher (go to 19)
+		Play dumb for sympathy grades (go to 20)
+		Try really hard (go to 21)
+		
+18: (Indie)
+	You make a romantic drama movie so unbelievably terrible that everybody loves it as a comedy.
+	It becomes one of the most well-known movies of all time as the worst of all time.
+	You somehow managed to spend 5 million dollars on this movie but no one knows where you got the money.
+
+LEVEL 4: ###########################################
+7: (Friends)
+	You decide to become a social media influencer on instagram and twitter.
+	You rake in tons of cash from ad revenue and garner major clout from your followers who will now die for you.
+
+8: (Yeezy)
+	You are now top model for one of the most pointless and lucritive brands in the world. Congratulations!
+
+9: (Hookup)
+	Nice going. Now literally everybody on Instagram, which is everybody that matters, hates you.
+	Your life is ruined. Now you'll never be famous!
+
+12: (Break Bones)
+	You broke your ribs on purpose. It was really painful but now you lost the inches!
+	IMG accepts you as a model! You did it, you're famous!
+	
+13: (Keep Dieting)
+	You continue to subject yourself to extreme mental anguish and physical malnourishment in hopes of losing the inches.
+	Unfortunately you keep doing this for so long your vital systems cease to function correctly and your liver fails.
+	You die shortly after. Oh no!
+
+14: (Give Up)
+	You gave up. You're just an average regular everyday Barbie Girl in this cruel Barbie World. Not Fantastic!
+	
+15: (YouTube)
+	You make body positivity videos on YouTube telling girls how to love themselves no matter how they look.
+	You gain a meager following but its better than nothing.
+
+16: (Dr. Phil)
+	You go on to Dr. Phil and talk about eating disorders.
+	Because you're not like everyone else and a very special Barbie Girl, you yell a lot and say crazy things for attention.
+	People watching find this hilarious and boost you into the social media limelight.
+	Now you're famous somehow, but you're not complaining!
+
+19: (Seduce)
+	You hook up with the teacher and convince him to give you passing grades.
+	You manage to graduate with honors without ever doing any work.
+	You land a role in diaper commercials. Nice!
+
+20: (Sympathy)
+	Your acting is so terrible that you use it to your advantage to make the professors feel sorry for you.
+	They go easy on you and you pass with average grades. C's get degrees!
+	You catch the eye of Prince Harry when performing your senior thesis.
+	You get married and all of the sudden you're the queen of England. Sweet!
+
+21: (Try)
+	You try really hard to pass the right way, because the right way always wins.
+	It takes you 8 years to graduate with a terrible GPA but you feel really good about it in the end.
+	Surely your hard work will be rewarded!
+	After years of fruitless searching you finally land a job as a high school english teacher. Shucks!
