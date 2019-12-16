@@ -323,7 +323,7 @@ while 1:
 		print(transcript)  # this is the chronological order of moves made for this game
 
 		break
-	elif game.player == human or MANUAL:  # take human input if human's turn of it manual control is on
+	elif False and (game.player == human or MANUAL):  # take human input if human's turn of it manual control is on
 		while 1:
 			play = input("Enter move (ex 'A1'): ").capitalize()  # make move
 			if "Debug" in play:  # toggle debug command
