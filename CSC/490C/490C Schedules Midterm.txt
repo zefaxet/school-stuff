@@ -1,0 +1,56 @@
+CSC 490C Goals:
+
+	Done already:
+	
+		Meeting 1
+			Talk about what has been done over the summer, and exchange ideas on how to proceed with the library that I have been working on.
+			
+		Meeting 2
+			In the pursuit of an open mind, implement Game of Life classically, then again using the library techniques.
+			Get familiar with Steven Wolfram's philosophy surrounding cellular automata.
+			Establish what is being worked on.
+				I decided towards the end that instead of the worldbuilder using Langton's Ant, I would pursue completing this library.
+	
+	Progress goals:
+	
+		Meeting 3 (9/25/2019):
+			Implement library standard for 2D spatial indexing using a quadtree
+			*** This is where I initially fell behind - I underestimated the effort this required ***
+
+		Meeting 4 (10/2/2019):
+			Be able to run library-driven implementations of Game of Life and Langton's Ant in python without any python-supplied logic
+			Demonstrate that library runs simulations correctly by comparing to classical implementations with the same start state after a common number of iterations
+				Do this with Langton's Ant and GoL
+			*** I am mostly caught up on this. I have Langton's Ant working completely free of python crutch. Game of Life is a work in progress but it's mostly a matter of translation from the demonstration that I already had ***
+		Meeting 5 (10/9/2019):
+			Generify spatial indexing system to support any conceivable integer coordinate system (for example, triangular and 3D)
+			*** Since I was behind already, I have been keeping this goal in mind as I try to catch up, so this framework is partially implemented already ***
+
+		Meeting 6 (10/16/2019):
+			Catch up as much as possible.
+
+======================MIDTERM============================
+
+		Meeting 7 (10/23/2019):
+			Still catching up.
+
+		Meeting 8 (10/30/2019):
+			Finish catching up on implementations.
+			Provide library-driven implementations of an example of one or both of the aforementioned species of cellular automata.
+			Finalize description of language-binding APIs.
+
+		Meeting 9 (11/6/2019):
+			Provide exposure of statistical information about a specific state or cumulative information about a series of states in a given simulation.
+			Look into other languages to expose API to (Currently considering Javascript so that I can demonstrate the capabilities of this library online)
+
+		Meeting 10 (11/13/2019): -- Last Meeting
+			Go around and advertise libant.
+			Attempt to find some niche discussion sites that may generate interest.
+
+If you recall, I left some room when I first drafted this schedule because I knew that I was overreaching a little bit.
+Knowing where I am now, the changes I have made to the schedule can be summarized like this:
+	Meeting 6 was already playing catchup, so I changed that one retroactively to reflect what my efforts were focused on.
+	Meeting 7's goals have been moved to Meeting 8. This is because I am still catching up, and progress has been hindered by cross-platofrm compatibility issues and my continued ameteurity when it comes to systems programming and the nuances of manual memory management. At least it runs fast.
+	For meeting 8, I want to take your advice from last week and thoroughly groom the description of the API as far as language exposure goes, so I added that as a task so that I can be ready for the task of working this library into a web language for meeting 9. It also ties closely to exposing the statistical information, so it's sensible to try to reach these goals simultaneously.
+	For meeting 9, If I have the API fully described, I will take a shot at getting the API working with javascript or wasm bindings so I can give this project a demonstratory website.
+	The final meeting hasn't changed other than it has been pushed back. I will be working on drawing attention to the project as well as cleaning it up in terms of providing documentation, the aforementioned demonstrations, and a clean repository. I have been looking into docgen frameworks for this purpose.

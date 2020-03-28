@@ -1,0 +1,8 @@
+Need basic signalling "command" functions on client side that set templating for the board.
+	The actual interface would wrap these commands so that we can change the interface without
+	affecting the templating software.
+	
+Similarly, the onboard software needs to receive (and maybe render) the character for a key
+	separately from actually calculating the display for the character. This is so that we
+	can easily swap screens if we eventually need to.
+
